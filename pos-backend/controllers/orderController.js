@@ -1,5 +1,6 @@
 const db = require("../db");
 const QRCode = require("qrcode");
+const OrderModel = require("../models/orderModel");
 
 // ---------------- 1. CREATE ORDER ----------------
 // ---------------- 1. CREATE ORDER ----------------

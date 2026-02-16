@@ -47,7 +47,10 @@ export default function RestaurantVendorUI({
   const [categories, setCategories] = useState([]);
   const [cart, setCart] = useState([]);
   const [usersList, setUsersList] = useState([]);
-
+  const [salesHistory, setSalesHistory] = useState([]);
+  const [reportDate, setReportDate] = useState(
+    new Date().toLocaleDateString('en-CA')
+  );
   const [showActiveOrders, setShowActiveOrders] = useState(false);
   const [showCheckout, setShowCheckout] = useState(false);
   const [activeTab, setActiveTab] = useState(
@@ -157,7 +160,22 @@ export default function RestaurantVendorUI({
       }
     } catch (e) {}
   };
-
+  const fetchSalesHistory = async (date) => {
+    try {
+      const res = await fetch(
+        `${API_URL}/orders/history?date=${date}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+  
+      if (!res.ok) throw new Error("Failed to fetch sales history");
+  
+      const data = await res.json();
+      setSalesHistory(data.orders || []);
+    } catch (err) {
+      console.error("Sales history fetch failed:", err);
+      setSalesHistory([]);
+    }
+  };
   useEffect(() => {
     if (hasFetched.current) return;
     hasFetched.current = true;
@@ -185,6 +203,12 @@ export default function RestaurantVendorUI({
       setActiveTab("menu");
     }
   }, [userRole, activeTab]);
+
+  useEffect(() => {
+    if (activeTab === 'dashboard' && userRole === 'admin') {
+      fetchSalesHistory(reportDate);
+    }
+  }, [activeTab, reportDate]);
 
   // --- HANDLERS ---
 
@@ -312,7 +336,7 @@ export default function RestaurantVendorUI({
 
       console.log(`Sending Token ${tokenNum} to Dock...`);
 
-      const data = new TextEncoder().encode(`*${tokenNum}*\n`);
+      const data = new TextEncoder().encode(`${tokenNum}\n`);
       await writer.write(data);
     } catch (error) {
       console.error("Error writing to serial port:", error);
@@ -610,10 +634,10 @@ export default function RestaurantVendorUI({
           {activeTab === "dashboard" && userRole === "admin" && (
             <div className="p-8">
               <SalesReport
-                orders={orders}
-                products={rawProducts}
+                history={salesHistory}
+                reportDate={reportDate}
+                setReportDate={setReportDate}
                 isDarkMode={isDarkMode}
-                API_URL={API_URL}
               />
             </div>
           )}
