@@ -16,10 +16,10 @@ origins = [
 # Same CORS policy as Express app.use(cors())
 app.add_middleware(
     CORSMiddleware,
-    allow_origin_regex=r"https://.*\.vercel\.app",
     allow_origins=[
         "http://localhost:5173",
         "http://127.0.0.1:5173",
+        "https://posspager.vercel.app"
     ],
     allow_credentials=True,
     allow_methods=["*"],
