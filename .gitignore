@@ -68,3 +68,7 @@ coverage/
 # ===============================
 *.pid
 *.seed
+venv/
+.pos-backend/venv/
+*.pyc
+__pycache__/
