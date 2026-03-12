@@ -38,7 +38,11 @@ async def create_ingredient(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Ingredient already exists"
         )
-
+    if ingredient.unit<0:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Unit cannot be negative"
+        )
     new_ingredient = Ingredient(
         name=ingredient.name,
         unit=ingredient.unit,
