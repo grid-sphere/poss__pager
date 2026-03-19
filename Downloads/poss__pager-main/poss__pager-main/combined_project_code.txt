@@ -1,0 +1,4524 @@
+
+================================================================================
+FILE: App.jsx
+================================================================================
+
+import React, { useState, useEffect } from 'react';
+import RestaurantVendorUI from './components/ui/RestaurantVendorUI';
+import LoginView from './components/ui/LoginView'; // ✅ IMPORTED LOGIN VIEW
+
+// ✅ DYNAMIC BACKEND CONNECTION
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+
+export default function App() {
+  const [user, setUser] = useState(null);
+  const [isDarkMode, setIsDarkMode] = useState(true);
+
+  // 1. Check for Session on Load
+  useEffect(() => {
+    const token = localStorage.getItem("auth_token");
+    const savedRole = localStorage.getItem("user_role");
+    const savedName = localStorage.getItem("username");
+    if (token) {
+      console.log(`✅ Connected to Backend: ${API_URL}`);
+      setUser({ 
+        role: savedRole || "cashier", 
+        username: savedName || "User", // ✅ Restore name here
+        token 
+      });
+    }
+  }, []);
+
+  // 2. Handle Login Success (Called by LoginView)
+  const handleLoginSuccess = (userData, token) => {
+    // ✅ FIX: Extract name from userData
+    const userName = userData?.username || "Admin"; 
+    const userRole = userData?.role || "cashier";
+    
+    // Save to LocalStorage
+    localStorage.setItem("auth_token", token);
+    localStorage.setItem("user_role", userRole);
+    localStorage.setItem("username", userName); // ✅ Use the correct variable
+    
+    // Update State
+    setUser({ ...userData, username: userName, token });
+  };
+
+  // 3. Handle Logout
+  const handleLogout = () => {
+    localStorage.removeItem("auth_token");
+    localStorage.removeItem("user_role");
+    localStorage.removeItem("username");
+    setUser(null);
+  };
+
+  // --- RENDER ---
+
+  // If Logged In: Show Main POS UI
+  if (user) {
+    return (
+      <RestaurantVendorUI 
+        user={user} 
+        onLogout={handleLogout} 
+        isDarkMode={isDarkMode}
+        onToggleTheme={() => setIsDarkMode(!isDarkMode)}
+        API_URL={API_URL} 
+      />
+    );
+  }
+
+  // If Logged Out: Show Login View
+  return (
+    <LoginView 
+      onLogin={handleLoginSuccess} 
+      isDarkMode={isDarkMode} 
+      onToggleTheme={() => setIsDarkMode(!isDarkMode)} 
+    />
+  );
+}
+
+================================================================================
+FILE: index.css
+================================================================================
+
+@import 'tailwindcss';
+
+
+
+@plugin 'tailwindcss-animate';
+
+@import "tw-animate-css";
+
+
+
+@custom-variant dark (&:is(.dark *));
+
+@tailwind base;
+
+@tailwind components;
+
+@tailwind utilities;
+
+
+
+@theme inline {
+
+  --radius-sm: calc(var(--radius) - 4px);
+
+  --radius-md: calc(var(--radius) - 2px);
+
+  --radius-lg: var(--radius);
+
+  --radius-xl: calc(var(--radius) + 4px);
+
+  --radius-2xl: calc(var(--radius) + 8px);
+
+  --radius-3xl: calc(var(--radius) + 12px);
+
+  --radius-4xl: calc(var(--radius) + 16px);
+
+  --color-background: var(--background);
+
+  --color-foreground: var(--foreground);
+
+  --color-card: var(--card);
+
+  --color-card-foreground: var(--card-foreground);
+
+  --color-popover: var(--popover);
+
+  --color-popover-foreground: var(--popover-foreground);
+
+  --color-primary: var(--primary);
+
+  --color-primary-foreground: var(--primary-foreground);
+
+  --color-secondary: var(--secondary);
+
+  --color-secondary-foreground: var(--secondary-foreground);
+
+  --color-muted: var(--muted);
+
+  --color-muted-foreground: var(--muted-foreground);
+
+  --color-accent: var(--accent);
+
+  --color-accent-foreground: var(--accent-foreground);
+
+  --color-destructive: var(--destructive);
+
+  --color-border: var(--border);
+
+  --color-input: var(--input);
+
+  --color-ring: var(--ring);
+
+  --color-chart-1: var(--chart-1);
+
+  --color-chart-2: var(--chart-2);
+
+  --color-chart-3: var(--chart-3);
+
+  --color-chart-4: var(--chart-4);
+
+  --color-chart-5: var(--chart-5);
+
+  --color-sidebar: var(--sidebar);
+
+  --color-sidebar-foreground: var(--sidebar-foreground);
+
+  --color-sidebar-primary: var(--sidebar-primary);
+
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+
+  --color-sidebar-accent: var(--sidebar-accent);
+
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+
+  --color-sidebar-border: var(--sidebar-border);
+
+  --color-sidebar-ring: var(--sidebar-ring);
+
+}
+
+
+
+:root {
+
+  --radius: 0.625rem;
+
+  --background: oklch(1 0 0);
+
+  --foreground: oklch(0.147 0.004 49.25);
+
+  --card: oklch(1 0 0);
+
+  --card-foreground: oklch(0.147 0.004 49.25);
+
+  --popover: oklch(1 0 0);
+
+  --popover-foreground: oklch(0.147 0.004 49.25);
+
+  --primary: oklch(0.216 0.006 56.043);
+
+  --primary-foreground: oklch(0.985 0.001 106.423);
+
+  --secondary: oklch(0.97 0.001 106.424);
+
+  --secondary-foreground: oklch(0.216 0.006 56.043);
+
+  --muted: oklch(0.97 0.001 106.424);
+
+  --muted-foreground: oklch(0.553 0.013 58.071);
+
+  --accent: oklch(0.97 0.001 106.424);
+
+  --accent-foreground: oklch(0.216 0.006 56.043);
+
+  --destructive: oklch(0.577 0.245 27.325);
+
+  --border: oklch(0.923 0.003 48.717);
+
+  --input: oklch(0.923 0.003 48.717);
+
+  --ring: oklch(0.709 0.01 56.259);
+
+  --chart-1: oklch(0.646 0.222 41.116);
+
+  --chart-2: oklch(0.6 0.118 184.704);
+
+  --chart-3: oklch(0.398 0.07 227.392);
+
+  --chart-4: oklch(0.828 0.189 84.429);
+
+  --chart-5: oklch(0.769 0.188 70.08);
+
+  --sidebar: oklch(0.985 0.001 106.423);
+
+  --sidebar-foreground: oklch(0.147 0.004 49.25);
+
+  --sidebar-primary: oklch(0.216 0.006 56.043);
+
+  --sidebar-primary-foreground: oklch(0.985 0.001 106.423);
+
+  --sidebar-accent: oklch(0.97 0.001 106.424);
+
+  --sidebar-accent-foreground: oklch(0.216 0.006 56.043);
+
+  --sidebar-border: oklch(0.923 0.003 48.717);
+
+  --sidebar-ring: oklch(0.709 0.01 56.259);
+
+}
+
+
+
+.dark {
+
+  --background: oklch(0.147 0.004 49.25);
+
+  --foreground: oklch(0.985 0.001 106.423);
+
+  --card: oklch(0.216 0.006 56.043);
+
+  --card-foreground: oklch(0.985 0.001 106.423);
+
+  --popover: oklch(0.216 0.006 56.043);
+
+  --popover-foreground: oklch(0.985 0.001 106.423);
+
+  --primary: oklch(0.923 0.003 48.717);
+
+  --primary-foreground: oklch(0.216 0.006 56.043);
+
+  --secondary: oklch(0.268 0.007 34.298);
+
+  --secondary-foreground: oklch(0.985 0.001 106.423);
+
+  --muted: oklch(0.268 0.007 34.298);
+
+  --muted-foreground: oklch(0.709 0.01 56.259);
+
+  --accent: oklch(0.268 0.007 34.298);
+
+  --accent-foreground: oklch(0.985 0.001 106.423);
+
+  --destructive: oklch(0.704 0.191 22.216);
+
+  --border: oklch(1 0 0 / 10%);
+
+  --input: oklch(1 0 0 / 15%);
+
+  --ring: oklch(0.553 0.013 58.071);
+
+  --chart-1: oklch(0.488 0.243 264.376);
+
+  --chart-2: oklch(0.696 0.17 162.48);
+
+  --chart-3: oklch(0.769 0.188 70.08);
+
+  --chart-4: oklch(0.627 0.265 303.9);
+
+  --chart-5: oklch(0.645 0.246 16.439);
+
+  --sidebar: oklch(0.216 0.006 56.043);
+
+  --sidebar-foreground: oklch(0.985 0.001 106.423);
+
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+
+  --sidebar-primary-foreground: oklch(0.985 0.001 106.423);
+
+  --sidebar-accent: oklch(0.268 0.007 34.298);
+
+  --sidebar-accent-foreground: oklch(0.985 0.001 106.423);
+
+  --sidebar-border: oklch(1 0 0 / 10%);
+
+  --sidebar-ring: oklch(0.553 0.013 58.071);
+
+}
+
+
+
+@layer base {
+
+  * {
+
+    @apply border-border outline-ring/50;
+
+  }
+
+  body {
+
+    @apply bg-background text-foreground;
+
+  }
+
+}
+
+================================================================================
+FILE: main.jsx
+================================================================================
+
+import React from 'react'
+import ReactDOM from 'react-dom/client'
+import App from './App.jsx'
+import './index.css'
+
+ReactDOM.createRoot(document.getElementById('root')).render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>,
+)
+
+================================================================================
+FILE: assets\react.svg
+================================================================================
+
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" role="img" class="iconify iconify--logos" width="35.93" height="32" preserveAspectRatio="xMidYMid meet" viewBox="0 0 256 228"><path fill="#00D8FF" d="M210.483 73.824a171.49 171.49 0 0 0-8.24-2.597c.465-1.9.893-3.777 1.273-5.621c6.238-30.281 2.16-54.676-11.769-62.708c-13.355-7.7-35.196.329-57.254 19.526a171.23 171.23 0 0 0-6.375 5.848a155.866 155.866 0 0 0-4.241-3.917C100.759 3.829 77.587-4.822 63.673 3.233C50.33 10.957 46.379 33.89 51.995 62.588a170.974 170.974 0 0 0 1.892 8.48c-3.28.932-6.445 1.924-9.474 2.98C17.309 83.498 0 98.307 0 113.668c0 15.865 18.582 31.778 46.812 41.427a145.52 145.52 0 0 0 6.921 2.165a167.467 167.467 0 0 0-2.01 9.138c-5.354 28.2-1.173 50.591 12.134 58.266c13.744 7.926 36.812-.22 59.273-19.855a145.567 145.567 0 0 0 5.342-4.923a168.064 168.064 0 0 0 6.92 6.314c21.758 18.722 43.246 26.282 56.54 18.586c13.731-7.949 18.194-32.003 12.4-61.268a145.016 145.016 0 0 0-1.535-6.842c1.62-.48 3.21-.974 4.76-1.488c29.348-9.723 48.443-25.443 48.443-41.52c0-15.417-17.868-30.326-45.517-39.844Zm-6.365 70.984c-1.4.463-2.836.91-4.3 1.345c-3.24-10.257-7.612-21.163-12.963-32.432c5.106-11 9.31-21.767 12.459-31.957c2.619.758 5.16 1.557 7.61 2.4c23.69 8.156 38.14 20.213 38.14 29.504c0 9.896-15.606 22.743-40.946 31.14Zm-10.514 20.834c2.562 12.94 2.927 24.64 1.23 33.787c-1.524 8.219-4.59 13.698-8.382 15.893c-8.067 4.67-25.32-1.4-43.927-17.412a156.726 156.726 0 0 1-6.437-5.87c7.214-7.889 14.423-17.06 21.459-27.246c12.376-1.098 24.068-2.894 34.671-5.345a134.17 134.17 0 0 1 1.386 6.193ZM87.276 214.515c-7.882 2.783-14.16 2.863-17.955.675c-8.075-4.657-11.432-22.636-6.853-46.752a156.923 156.923 0 0 1 1.869-8.499c10.486 2.32 22.093 3.988 34.498 4.994c7.084 9.967 14.501 19.128 21.976 27.15a134.668 134.668 0 0 1-4.877 4.492c-9.933 8.682-19.886 14.842-28.658 17.94ZM50.35 144.747c-12.483-4.267-22.792-9.812-29.858-15.863c-6.35-5.437-9.555-10.836-9.555-15.216c0-9.322 13.897-21.212 37.076-29.293c2.813-.98 5.757-1.905 8.812-2.773c3.204 10.42 7.406 21.315 12.477 32.332c-5.137 11.18-9.399 22.249-12.634 32.792a134.718 134.718 0 0 1-6.318-1.979Zm12.378-84.26c-4.811-24.587-1.616-43.134 6.425-47.789c8.564-4.958 27.502 2.111 47.463 19.835a144.318 144.318 0 0 1 3.841 3.545c-7.438 7.987-14.787 17.08-21.808 26.988c-12.04 1.116-23.565 2.908-34.161 5.309a160.342 160.342 0 0 1-1.76-7.887Zm110.427 27.268a347.8 347.8 0 0 0-7.785-12.803c8.168 1.033 15.994 2.404 23.343 4.08c-2.206 7.072-4.956 14.465-8.193 22.045a381.151 381.151 0 0 0-7.365-13.322Zm-45.032-43.861c5.044 5.465 10.096 11.566 15.065 18.186a322.04 322.04 0 0 0-30.257-.006c4.974-6.559 10.069-12.652 15.192-18.18ZM82.802 87.83a323.167 323.167 0 0 0-7.227 13.238c-3.184-7.553-5.909-14.98-8.134-22.152c7.304-1.634 15.093-2.97 23.209-3.984a321.524 321.524 0 0 0-7.848 12.897Zm8.081 65.352c-8.385-.936-16.291-2.203-23.593-3.793c2.26-7.3 5.045-14.885 8.298-22.6a321.187 321.187 0 0 0 7.257 13.246c2.594 4.48 5.28 8.868 8.038 13.147Zm37.542 31.03c-5.184-5.592-10.354-11.779-15.403-18.433c4.902.192 9.899.29 14.978.29c5.218 0 10.376-.117 15.453-.343c-4.985 6.774-10.018 12.97-15.028 18.486Zm52.198-57.817c3.422 7.8 6.306 15.345 8.596 22.52c-7.422 1.694-15.436 3.058-23.88 4.071a382.417 382.417 0 0 0 7.859-13.026a347.403 347.403 0 0 0 7.425-13.565Zm-16.898 8.101a358.557 358.557 0 0 1-12.281 19.815a329.4 329.4 0 0 1-23.444.823c-7.967 0-15.716-.248-23.178-.732a310.202 310.202 0 0 1-12.513-19.846h.001a307.41 307.41 0 0 1-10.923-20.627a310.278 310.278 0 0 1 10.89-20.637l-.001.001a307.318 307.318 0 0 1 12.413-19.761c7.613-.576 15.42-.876 23.31-.876H128c7.926 0 15.743.303 23.354.883a329.357 329.357 0 0 1 12.335 19.695a358.489 358.489 0 0 1 11.036 20.54a329.472 329.472 0 0 1-11 20.722Zm22.56-122.124c8.572 4.944 11.906 24.881 6.52 51.026c-.344 1.668-.73 3.367-1.15 5.09c-10.622-2.452-22.155-4.275-34.23-5.408c-7.034-10.017-14.323-19.124-21.64-27.008a160.789 160.789 0 0 1 5.888-5.4c18.9-16.447 36.564-22.941 44.612-18.3ZM128 90.808c12.625 0 22.86 10.235 22.86 22.86s-10.235 22.86-22.86 22.86s-22.86-10.235-22.86-22.86s10.235-22.86 22.86-22.86Z"></path></svg>
+
+================================================================================
+FILE: components\ui\ActiveOrdersDrawer.jsx
+================================================================================
+
+import React from 'react';
+import { X, ChefHat, Check, BellRing, Utensils, Clock, ReceiptText } from 'lucide-react';
+import { getTheme, COMMON_STYLES, FONTS } from './theme';
+
+export default function ActiveOrdersDrawer({ 
+  isOpen, onClose, orders = [], onCompleteOrder, onCallCustomer, isDarkMode 
+}) {
+  if (!isOpen) return null;
+  const theme = getTheme(isDarkMode);
+
+  // Consistent with the 'Hot and Sour' card colors
+  const UI_COLORS = {
+    bg: '#000000',
+    card: '#0a0a0a',
+    accent: '#ffffff',
+    muted: '#1a1a1a',
+    textSecondary: '#a1a1aa'
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex justify-end animate-in fade-in duration-300" style={{ fontFamily: FONTS.sans }}>
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+      
+      <div className={`relative w-full sm:w-[420px] h-full flex flex-col border-l border-white/10 shadow-2xl`} style={{ backgroundColor: UI_COLORS.bg }}>
+        
+        {/* Header */}
+        <div className="p-6 flex justify-between items-center border-b border-white/5">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-white/5 text-white">
+              <ChefHat size={20} />
+            </div>
+            <div>
+              <h2 className="font-bold text-lg text-white tracking-tight">Kitchen Queue</h2>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">
+                {orders.length} PENDING TICKETS
+              </p>
+            </div>
+          </div>
+          <button onClick={onClose} className="p-2 rounded-lg hover:bg-white/5 text-zinc-400 transition-colors">
+            <X size={20} />
+          </button>
+        </div>
+        
+        {/* Orders List */}
+        <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
+          {orders.length === 0 ? (
+            <div className="flex flex-col items-center justify-center h-[60vh] opacity-20">
+              <ReceiptText size={40} className="text-white mb-2" />
+              <p className="text-sm font-medium text-white">No active orders</p>
+            </div>
+          ) : (
+            orders.map((order) => (
+              <div 
+                key={order.id} 
+                className="relative rounded-xl border border-white/5 bg-[#0a0a0a] overflow-hidden"
+              >
+                {/* Header Bar */}
+                <div className="flex items-center justify-between px-4 py-3 border-b border-white/5 bg-white/[0.02]">
+                  <div className="flex items-center gap-2">
+                    <Clock size={12} className="text-zinc-500" />
+                    <span className="text-[10px] font-bold font-mono text-zinc-400">
+                      {new Date(order.startedAt || order.created_at || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </span>
+                  </div>
+                  
+                  {/* TOKEN TAG - Consistent with 'soup' tag style */}
+                  <div className="bg-[#1a1a1a] px-3 py-1 rounded-md border border-white/10">
+                    <span className="text-[10px] font-bold text-white uppercase tracking-tighter">
+                      #{order.token}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Items Content */}
+                <div className="p-4">
+                  <div className="space-y-3">
+                    {order.items && order.items.length > 0 ? (
+                      order.items.map((item, idx) => (
+                        <div key={idx} className="flex justify-between items-center">
+                          <div className="flex items-center gap-3">
+                            <div className="flex items-center justify-center w-6 h-6 rounded border border-white/10 bg-white/5 text-[10px] font-bold text-white">
+                              {item.quantity}
+                            </div>
+                            <span className="text-sm font-medium text-zinc-200 tracking-tight">
+                              {item.name}
+                            </span>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="py-2 flex items-center gap-3 opacity-40">
+                        <div className="w-4 h-4 rounded-full border border-t-white animate-spin" />
+                        <span className="text-[10px] text-white uppercase tracking-widest font-bold">Synchronizing...</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+                
+                {/* Action Buttons - White button style like 'Add' */}
+                <div className="p-4 pt-0 flex gap-2">
+                  <button 
+                    onClick={() => onCallCustomer?.(order.token)} 
+                    className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg border border-white/10 text-white text-[10px] font-bold uppercase tracking-widest hover:bg-white/5 transition-all"
+                  >
+                    <BellRing size={14} /> Call
+                  </button>
+                  <button 
+                    onClick={() => onCompleteOrder(order.id)} 
+                    className="flex-[1.5] flex items-center justify-center gap-2 py-2 rounded-lg bg-white text-black text-[10px] font-bold uppercase tracking-widest hover:bg-zinc-200 transition-all active:scale-95 shadow-lg shadow-white/5"
+                  >
+                    <Check size={16} strokeWidth={3} /> Done
+                  </button>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+================================================================================
+FILE: components\ui\AdminProductModal.jsx
+================================================================================
+
+import { useState, useEffect } from "react";
+
+export default function AdminProductModal({ 
+  open, 
+  onClose, 
+  onSave, 
+  initialData 
+}) {
+  const [form, setForm] = useState({
+    name: "",
+    price: "",
+    stock: "",
+    category: ""
+  });
+  useEffect(() => {
+    if (initialData) {
+      setForm(initialData);
+    } else {
+      setForm({ name: "", price: "", stock: "", category: "" });
+    }
+  }, [initialData]);
+  
+   
+
+  if (!open) return null;
+
+  function handleChange(e) {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  }
+
+  function handleSubmit() {
+    if (!form.name || !form.price || !form.stock) {
+      alert("Fill all fields");
+      return;
+    }
+    onSave(form);
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/40 flex justify-center items-center z-50">
+      <div className="bg-white p-6 rounded w-96">
+        <h2 className="text-lg font-bold mb-4">
+          {initialData ? "Edit Product" : "Add Product"}
+        </h2>
+
+        <input name="name" value={form.name} onChange={handleChange} placeholder="Name" className="border p-2 w-full mb-2" />
+        <input name="price" value={form.price} onChange={handleChange} placeholder="Price" type="number" className="border p-2 w-full mb-2" />
+        <input name="stock" value={form.stock} onChange={handleChange} placeholder="Stock" type="number" className="border p-2 w-full mb-2" />
+        <input name="category" value={form.category} onChange={handleChange} placeholder="Category" className="border p-2 w-full mb-4" />
+
+        <div className="flex justify-end gap-2">
+          <button onClick={onClose} className="px-3 py-1 bg-gray-300 rounded">Cancel</button>
+          <button onClick={handleSubmit} className="px-3 py-1 bg-black text-white rounded">Save</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
+================================================================================
+FILE: components\ui\AdminSettingsModal.jsx
+================================================================================
+
+import React, { useState, useEffect } from 'react';
+import { X, Save, CreditCard, User } from 'lucide-react';
+import { getTheme, COMMON_STYLES } from './theme';
+
+export default function AdminSettingsModal({ open, onClose, restaurantId, isDarkMode }) {
+  // Use fallback if env variable is missing
+  const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+  
+  const [upiId, setUpiId] = useState("");
+  const [payeeName, setPayeeName] = useState("");
+  const [loading, setLoading] = useState(false);
+  const theme = getTheme(isDarkMode);
+  const [kitchenCapacity, setKitchenCapacity] = useState(20);
+  // 1. Fetch Settings on Load
+  useEffect(() => {
+    if (open) {
+      const fetchSettings = async () => {
+        try { 
+            const token = localStorage.getItem("auth_token"); 
+            if (!token) return;
+
+            // GET request to /settings
+            const res = await fetch(`${API_URL}/settings`, { 
+                headers: { Authorization: `Bearer ${token}` } 
+            }); 
+
+            if (res.ok) { 
+                const data = await res.json(); 
+                // Database returns snake_case, so we read those keys
+                setUpiId(data.upi_id || ""); 
+                setPayeeName(data.payee_name || ""); 
+                setKitchenCapacity(data.kitchen_capacity || 20); // Add this
+            } 
+        } catch (e) { 
+            console.error("Fetch settings failed:", e); 
+        }
+      };
+      fetchSettings();
+    }
+  }, [open, API_URL]);
+
+  // 2. Save Settings
+  const handleSave = async () => {
+    setLoading(true);
+    try { 
+        const token = localStorage.getItem("auth_token"); 
+        
+        // ✅ CRITICAL FIX: Method MUST be PUT to match router.put('/')
+        const res = await fetch(`${API_URL}/settings`, { 
+            method: "PUT", 
+            headers: { 
+                "Content-Type": "application/json", 
+                Authorization: `Bearer ${token}` 
+            }, 
+            // ✅ CRITICAL FIX: Send camelCase keys to match backend controller
+            body: JSON.stringify({ 
+                upiId: upiId,          
+                payeeName: payeeName,  
+                kitchenCapacity: Number(kitchenCapacity), // Add this
+                restaurantId 
+            }) 
+        }); 
+
+        if (!res.ok) {
+            const errData = await res.json();
+            throw new Error(errData.message || "Failed to save settings"); 
+        }
+        
+        alert("Settings Saved!"); 
+        onClose(); 
+    } catch (e) { 
+        alert(e.message); 
+    } finally { 
+        setLoading(false); 
+    }
+  };
+
+  if (!open) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 font-sans animate-in fade-in">
+      <div className={`w-full max-w-md rounded-2xl shadow-2xl overflow-hidden ${COMMON_STYLES.modal(isDarkMode)}`}>
+        {/* Header */}
+        <div className={`p-5 border-b flex justify-between items-center ${theme.border.default}`}>
+            <h2 className={`text-lg font-semibold ${theme.text.main}`}>System Settings</h2>
+            <button onClick={onClose} className={`p-2 rounded-lg ${theme.button.ghost}`}>
+                <X size={20} />
+            </button>
+        </div>
+
+        {/* Body */}
+        <div className="p-6 space-y-5">
+            <div>
+                <label className={`block text-xs font-medium uppercase mb-2 ${theme.text.secondary}`}>UPI ID (VPA)</label>
+                <div className="relative">
+                    <CreditCard className={`absolute left-3 top-1/2 -translate-y-1/2 ${theme.text.secondary}`} size={18}/>
+                    <input 
+                        value={upiId} 
+                        onChange={(e) => setUpiId(e.target.value)} 
+                        placeholder="merchant@upi" 
+                        className={`w-full pl-10 pr-4 py-2.5 ${COMMON_STYLES.input(isDarkMode)}`} 
+                    />
+                </div>
+                <p className={`text-[10px] mt-1 ${theme.text.muted}`}>Your UPI ID for generating QR codes.</p>
+            </div>
+            
+            <div>
+                <label className={`block text-xs font-medium uppercase mb-2 ${theme.text.secondary}`}>Payee Name</label>
+                <div className="relative">
+                    <User className={`absolute left-3 top-1/2 -translate-y-1/2 ${theme.text.secondary}`} size={18}/>
+                    <input 
+                        value={payeeName} 
+                        onChange={(e) => setPayeeName(e.target.value)} 
+                        placeholder="Business Name" 
+                        className={`w-full pl-10 pr-4 py-2.5 ${COMMON_STYLES.input(isDarkMode)}`} 
+                    />
+                </div>
+                <p className={`text-[10px] mt-1 ${theme.text.muted}`}>The name customers see when scanning.</p>
+            </div>
+            <div>
+    <label className={`block text-xs font-medium uppercase mb-2 ${theme.text.secondary}`}>Kitchen Capacity</label>
+    <div className="relative">
+        <Box className={`absolute left-3 top-1/2 -translate-y-1/2 ${theme.text.secondary}`} size={18}/>
+        <input 
+            type="number"
+            value={kitchenCapacity} 
+            onChange={(e) => setKitchenCapacity(e.target.value)} 
+            className={`w-full pl-10 pr-4 py-2.5 ${COMMON_STYLES.input(isDarkMode)}`} 
+        />
+    </div>
+    <p className={`text-[10px] mt-1 ${theme.text.muted}`}>Max active orders before warning cashier.</p>
+</div>
+        </div>
+
+        {/* Footer */}
+        <div className={`p-5 border-t flex justify-end gap-3 ${theme.border.default} ${theme.bg.subtle}`}>
+            <button 
+                onClick={onClose} 
+                className={`px-4 py-2 rounded-lg font-medium text-sm ${theme.button.secondary}`}
+            >
+                Cancel
+            </button>
+            <button 
+                onClick={handleSave} 
+                disabled={loading} 
+                className={`px-6 py-2 rounded-lg font-medium text-sm flex items-center gap-2 ${theme.button.primary}`}
+            >
+                <Save size={16}/> {loading ? "Saving..." : "Save Settings"}
+            </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+================================================================================
+FILE: components\ui\badge.jsx
+================================================================================
+
+import * as React from "react"
+import { cva } from "class-variance-authority";
+
+import { cn } from "@/lib/utils"
+
+const badgeVariants = cva(
+  "inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
+  {
+    variants: {
+      variant: {
+        default:
+          "border-transparent bg-primary text-primary-foreground shadow hover:bg-primary/80",
+        secondary:
+          "border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80",
+        destructive:
+          "border-transparent bg-destructive text-destructive-foreground shadow hover:bg-destructive/80",
+        outline: "text-foreground",
+      },
+    },
+    defaultVariants: {
+      variant: "default",
+    },
+  }
+)
+
+function Badge({
+  className,
+  variant,
+  ...props
+}) {
+  return (<div className={cn(badgeVariants({ variant }), className)} {...props} />);
+}
+
+export { Badge, badgeVariants }
+
+
+================================================================================
+FILE: components\ui\button.jsx
+================================================================================
+
+import * as React from "react"
+import { Slot } from "@radix-ui/react-slot"
+import { cva } from "class-variance-authority";
+
+import { cn } from "@/lib/utils"
+
+const buttonVariants = cva(
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+  {
+    variants: {
+      variant: {
+        default:
+          "bg-primary text-primary-foreground shadow hover:bg-primary/90",
+        destructive:
+          "bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90",
+        outline:
+          "border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground",
+        secondary:
+          "bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80",
+        ghost: "hover:bg-accent hover:text-accent-foreground",
+        link: "text-primary underline-offset-4 hover:underline",
+      },
+      size: {
+        default: "h-9 px-4 py-2",
+        sm: "h-8 rounded-md px-3 text-xs",
+        lg: "h-10 rounded-md px-8",
+        icon: "h-9 w-9",
+      },
+    },
+    defaultVariants: {
+      variant: "default",
+      size: "default",
+    },
+  }
+)
+
+const Button = React.forwardRef(({ className, variant, size, asChild = false, ...props }, ref) => {
+  const Comp = asChild ? Slot : "button"
+  return (
+    <Comp
+      className={cn(buttonVariants({ variant, size, className }))}
+      ref={ref}
+      {...props} />
+  );
+})
+Button.displayName = "Button"
+
+export { Button, buttonVariants }
+
+
+================================================================================
+FILE: components\ui\card.jsx
+================================================================================
+
+import * as React from "react"
+
+import { cn } from "@/lib/utils"
+
+const Card = React.forwardRef(({ className, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn("rounded-xl border bg-card text-card-foreground shadow", className)}
+    {...props} />
+))
+Card.displayName = "Card"
+
+const CardHeader = React.forwardRef(({ className, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn("flex flex-col space-y-1.5 p-6", className)}
+    {...props} />
+))
+CardHeader.displayName = "CardHeader"
+
+const CardTitle = React.forwardRef(({ className, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn("font-semibold leading-none tracking-tight", className)}
+    {...props} />
+))
+CardTitle.displayName = "CardTitle"
+
+const CardDescription = React.forwardRef(({ className, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn("text-sm text-muted-foreground", className)}
+    {...props} />
+))
+CardDescription.displayName = "CardDescription"
+
+const CardContent = React.forwardRef(({ className, ...props }, ref) => (
+  <div ref={ref} className={cn("p-6 pt-0", className)} {...props} />
+))
+CardContent.displayName = "CardContent"
+
+const CardFooter = React.forwardRef(({ className, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn("flex items-center p-6 pt-0", className)}
+    {...props} />
+))
+CardFooter.displayName = "CardFooter"
+
+export { Card, CardHeader, CardFooter, CardTitle, CardDescription, CardContent }
+
+
+================================================================================
+FILE: components\ui\CheckoutModal.jsx
+================================================================================
+
+import React, { useState, useEffect } from 'react';
+import { X, CheckCircle, Loader } from 'lucide-react';
+import { getTheme, COMMON_STYLES, FONTS } from './theme';
+
+export default function CheckoutModal({ 
+  
+  isOpen, 
+  onClose, 
+  onConfirm, 
+  cartSubtotal, 
+  taxAmount, 
+  discount, 
+  grandTotal, 
+  orderId, 
+  isDarkMode, 
+  backendUpiData,
+  onPaymentComplete // ✅ Receive the new success handler
+}) {
+  console.log("QR DATA:", backendUpiData);
+  const [paymentMethod, setPaymentMethod] = useState('cash');
+  const [isProcessing, setIsProcessing] = useState(false);
+  const theme = getTheme(isDarkMode);
+
+  useEffect(() => { 
+    if (isOpen) { 
+      setPaymentMethod('cash'); 
+      setIsProcessing(false); 
+    } 
+  }, [isOpen]);
+  
+  if (!isOpen) return null;
+
+  const handleConfirm = async () => {
+    if (paymentMethod === "upi") {
+      // For UPI we do NOT finalize order yet
+      await onConfirm({ paymentMethod: "upi", initiate: true });
+      return;
+    }
+  
+    setIsProcessing(true);
+    await onConfirm({ paymentMethod });
+    setIsProcessing(false);
+  };
+
+  // ─── UPI QR VIEW ───
+  if (backendUpiData?.qr) {
+    return (
+      <div className={`fixed inset-0 z-50 flex items-center justify-center ${theme.bg.overlay} p-4`} style={{ fontFamily: FONTS.sans }}>
+        <div className={`w-full max-w-sm rounded-2xl relative p-8 flex flex-col items-center text-center ${COMMON_STYLES.modal(isDarkMode)}`}>
+          <button 
+            onClick={onClose} 
+            className={`absolute top-4 right-4 p-2 rounded-lg ${theme.button.ghost}`}
+          >
+            <X size={24} />
+          </button>
+          <h2 className="text-xl font-semibold mb-6">Payment</h2>
+          <div className="bg-white p-4 rounded-xl mb-6 shadow-inner border">
+            {/* QR Code */}
+            <img src={backendUpiData.qr} alt="UPI QR" className="w-48 h-48 object-contain" />
+          </div>
+          <p className="text-base font-medium mb-1 opacity-75">{backendUpiData.payee || "Merchant"}</p>
+          <p className="text-3xl font-bold mb-8">₹{grandTotal}</p>
+          
+          {/* ✅ FIX: Call onPaymentComplete instead of onClose */}
+          <button 
+            onClick={()=>onPaymentComplete("upi")} 
+            className={`w-full py-3 rounded-lg font-medium text-sm flex items-center justify-center gap-2 ${theme.button.primary}`}
+          >
+            <CheckCircle size={20} /> Payment Done
+          </button>
+          <div className="grid grid-cols-3 gap-3">
+          {paymentMethod === "card" && (
+  <div className="mt-4 space-y-3">
+    <input
+      placeholder="Card Number"
+      className={`w-full ${COMMON_STYLES.input(isDarkMode)}`}
+    />
+
+    <div className="flex gap-3">
+      <input
+        placeholder="MM/YY"
+        className={`flex-1 ${COMMON_STYLES.input(isDarkMode)}`}
+      />
+      <input
+        placeholder="CVV"
+        className={`flex-1 ${COMMON_STYLES.input(isDarkMode)}`}
+      />
+    </div>
+
+    <input
+      placeholder="Cardholder Name"
+      className={`w-full ${COMMON_STYLES.input(isDarkMode)}`}
+    />
+  </div>
+)}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ─── STANDARD CHECKOUT VIEW ───
+  return (
+    <div className={`fixed inset-0 z-50 flex items-center justify-center ${theme.bg.overlay} p-4`} style={{ fontFamily: FONTS.sans }}>
+      <div className={`w-full max-w-md rounded-2xl flex flex-col ${COMMON_STYLES.modal(isDarkMode)}`}>
+        <div className={`p-6 flex justify-between items-center border-b ${theme.border.default}`}>
+          <div>
+            <h2 className="text-xl font-semibold">Checkout</h2>
+            <p className={`text-sm font-medium mt-1 ${theme.text.secondary}`}>Order #{orderId}</p>
+          </div>
+          <button 
+            onClick={onClose} 
+            className={`p-2 rounded-lg ${theme.button.ghost}`}
+          >
+            <X size={24} />
+          </button>
+        </div>
+        
+        <div className="p-6 space-y-6">
+          <div className={`p-5 rounded-xl border space-y-2 ${theme.border.default} ${theme.bg.subtle}`}>
+            <div className={`flex justify-between text-sm font-medium ${theme.text.secondary}`}>
+              <span>Subtotal</span>
+              <span>₹{cartSubtotal}</span>
+            </div>
+            <div className={`flex justify-between text-sm font-medium ${theme.text.secondary}`}>
+              <span>Discount</span>
+              <span>-₹{discount}</span>
+            </div>
+            <div className={`flex justify-between text-sm font-medium ${theme.text.secondary}`}>
+              <span>Tax</span>
+              <span>₹{Math.round(taxAmount)}</span>
+            </div>
+            <div className={`flex justify-between text-xl font-semibold pt-4 mt-2 border-t ${theme.border.default}`}>
+              <span>Total</span>
+              <span>₹{grandTotal}</span>
+            </div>
+          </div>
+          
+          <div>
+            <label className={`block text-xs font-medium uppercase mb-3 ${theme.text.secondary}`}>
+              Payment Method
+            </label>
+            <div className="grid grid-cols-3 gap-3">
+              {[
+                { id: 'cash', label: 'Cash' }, 
+                { id: 'upi', label: 'UPI' }, 
+                { id: 'card', label: 'Card' }
+              ].map((m) => (
+                <button 
+                  key={m.id} 
+                  onClick={() => setPaymentMethod(m.id)} 
+                  className={`flex flex-col items-center justify-center p-4 rounded-lg border font-medium gap-2 transition ${paymentMethod === m.id ? theme.button.primary : theme.button.secondary}`}
+                >
+                  {m.label}
+                </button>
+              ))}
+            </div>
+          </div>
+          
+          <button 
+            onClick={handleConfirm} 
+            disabled={isProcessing} 
+            className={`w-full py-3 rounded-lg font-medium text-sm flex justify-center items-center gap-2 ${theme.button.primary}`}
+          >
+            {isProcessing ? <Loader className="animate-spin" /> : "Confirm Payment"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+================================================================================
+FILE: components\ui\data.js
+================================================================================
+
+// --- IMPORT IMAGES (Relative path from src/components/ui/) ---
+
+// STARTERS (Checked against your screenshot)
+import paneerTikka from './images/starters/paneer-tikka.jpg';   // Hyphen (-)
+import springRolls from './images/starters/spring_rolls.jpg';   // Underscore (_)
+import chickenWings from './images/starters/chicken_wings.jpg'; // Underscore (_)
+import frenchFries from './images/starters/french_fries.jpg';   // Underscore (_)
+
+// MAIN COURSE (Checked against your screenshot)
+import butterChicken from './images/main_course/butter_chicken.jpg';       // Underscore (_)
+import dalMakhani from './images/main_course/dal_makhani.jpg';           // Underscore (_)
+import paneerButterMasala from './images/main_course/paneer_butter_masala.jpg'; // Underscore (_)
+import chickenBiryani from './images/main_course/chicken_biryani.jpg';   // Underscore (_)
+import naan from './images/main_course/naan.jpg';
+import roti from './images/main_course/roti.jpg';
+
+// BEVERAGES (Checked against your screenshot)
+import coldCoffee from './images/beverages/cold_coffee.jpg';  // Underscore (_)
+import lassi from './images/beverages/lassi.jpg';
+import lemonSoda from './images/beverages/lemon_soda.jpg';    // Underscore (_)
+
+// --- MENU DATA ---
+export const MENU_ITEMS = {
+  Starters: [
+    { id: 1, name: 'Paneer Tikka', price: 180, image: paneerTikka },
+    { id: 2, name: 'Spring Rolls', price: 120, image: springRolls },
+    { id: 3, name: 'Chicken Wings', price: 220, image: chickenWings },
+    { id: 4, name: 'French Fries', price: 80, image: frenchFries },
+  ],
+  'Main Course': [
+    { id: 10, name: 'Butter Chicken', price: 280, image: butterChicken },
+    { id: 11, name: 'Dal Makhani', price: 180, image: dalMakhani },
+    { id: 12, name: 'Paneer Butter Masala', price: 240, image: paneerButterMasala },
+    { id: 14, name: 'Chicken Biryani', price: 260, image: chickenBiryani },
+    { id: 15, name: 'Naan', price: 40, image: naan },
+    { id: 16, name: 'Roti', price: 20, image: roti },
+  ],
+  Beverages: [
+    { id: 18, name: 'Cold Coffee', price: 120, image: coldCoffee },
+    { id: 19, name: 'Lassi', price: 80, image: lassi },
+    { id: 20, name: 'Lemon Soda', price: 60, image: lemonSoda },
+  ],
+};
+
+export const CATEGORIES = Object.keys(MENU_ITEMS);
+
+export const UPI_CONFIG = {
+  pa: 'mridulbhardwaj13@okaxis', 
+  pn: 'Grid Sphere',             
+  cu: 'INR',                     
+};
+
+================================================================================
+FILE: components\ui\InventoryManager.jsx
+================================================================================
+
+import React, { useEffect, useState } from "react";
+import { Plus, Box, RefreshCw, AlertCircle, Edit2, X, Save } from "lucide-react";
+import { getTheme, COMMON_STYLES } from "./theme";
+
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+
+export default function InventoryManager({ apiRequest, isDarkMode }) {
+  const theme = getTheme(isDarkMode);
+
+  const [ingredients, setIngredients] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [editingId, setEditingId] = useState(null); // Track which item is being edited
+
+  const [form, setForm] = useState({
+    name: "",
+    unit: "",
+    current_stock: "",
+    min_stock: ""
+  });
+
+  const fetchIngredients = async () => {
+    try {
+      setLoading(true);
+      const res = await apiRequest(`${API_URL}/ingredients/`);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.detail || "Failed to fetch");
+      setIngredients(data);
+    } catch (err) {
+      alert(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchIngredients();
+  }, []);
+
+  const getErrorMessage = (data) => {
+    if (typeof data.detail === "string") return data.detail;
+    if (Array.isArray(data.detail)) {
+      return data.detail.map(err => `${err.loc[1] || 'Error'}: ${err.msg}`).join("\n");
+    }
+    return "An unexpected error occurred";
+  };
+
+  // -----------------------------------------
+  // HANDLE ADD OR UPDATE
+  // -----------------------------------------
+  const handleSubmit = async () => {
+    if (!form.name || !form.unit) {
+      alert("Name and unit required");
+      return;
+    }
+
+    const isEditing = editingId !== null;
+    const url = isEditing 
+      ? `${API_URL}/ingredients/${editingId}` 
+      : `${API_URL}/ingredients/`;
+    
+    const method = isEditing ? "PUT" : "POST";
+
+    try {
+      const res = await apiRequest(url, {
+        method: method,
+        body: JSON.stringify({
+          name: form.name,
+          unit: form.unit,
+          current_stock: Number(form.current_stock) || 0,
+          min_stock: Number(form.min_stock) || 0
+        })
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(getErrorMessage(data));
+
+      // Reset state
+      setForm({ name: "", unit: "", current_stock: "", min_stock: "" });
+      setEditingId(null);
+      fetchIngredients();
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+
+  // -----------------------------------------
+  // START EDITING
+  // -----------------------------------------
+  const startEdit = (ingredient) => {
+    setEditingId(ingredient.id);
+    setForm({
+      name: ingredient.name,
+      unit: ingredient.unit,
+      current_stock: ingredient.current_stock,
+      min_stock: ingredient.min_stock
+    });
+    // Scroll to top where the form is
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const cancelEdit = () => {
+    setEditingId(null);
+    setForm({ name: "", unit: "", current_stock: "", min_stock: "" });
+  };
+
+  // -----------------------------------------
+  // RESTOCK INGREDIENT
+  // -----------------------------------------
+  const handleRestock = async (id) => {
+    const amountStr = prompt("Enter restock amount:");
+    if (amountStr === null) return;
+    const amount = Number(amountStr);
+    if (isNaN(amount) || amount <= 0) {
+      alert("Please enter a valid positive number");
+      return;
+    }
+
+    try {
+      const res = await apiRequest(
+        `${API_URL}/ingredients/${id}/restock?amount=${amount}`,
+        { method: "POST" }
+      );
+      if (!res.ok) throw new Error("Restock failed");
+      fetchIngredients();
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+
+  return (
+    <div className="max-w-6xl mx-auto p-8">
+      <div className="flex justify-between items-center mb-8">
+        <h2 className="text-2xl font-semibold">Inventory Management</h2>
+        {editingId && (
+          <button 
+            onClick={cancelEdit}
+            className="flex items-center gap-2 text-sm font-medium text-orange-500 hover:text-orange-600"
+          >
+            <X size={16} /> Cancel Editing
+          </button>
+        )}
+      </div>
+
+      {/* FORM SECTION (ADD/EDIT) */}
+      <div className={`${COMMON_STYLES.card(isDarkMode)} p-6 mb-8 border-2 ${editingId ? 'border-blue-500/50' : 'border-transparent'}`}>
+        <h3 className="text-sm font-semibold mb-4 flex items-center gap-2">
+          {editingId ? <Edit2 size={16} className="text-blue-500" /> : <Plus size={16} />}
+          {editingId ? "Edit Ingredient" : "Add New Ingredient"}
+        </h3>
+
+        <div className="grid grid-cols-4 gap-4">
+          <input
+            placeholder="Name"
+            className={COMMON_STYLES.input(isDarkMode)}
+            value={form.name}
+            onChange={(e) => setForm({ ...form, name: e.target.value })}
+          />
+
+          <input
+            placeholder="Unit (g, pcs, ml)"
+            className={COMMON_STYLES.input(isDarkMode)}
+            value={form.unit}
+            onChange={(e) => setForm({ ...form, unit: e.target.value })}
+          />
+
+          <input
+            type="number"
+            placeholder="Stock"
+            disabled={editingId !== null} // Usually current stock is changed via Restock or automated deduction
+            className={`${COMMON_STYLES.input(isDarkMode)} ${editingId ? 'opacity-50' : ''}`}
+            value={form.current_stock}
+            onChange={(e) => setForm({ ...form, current_stock: e.target.value })}
+          />
+
+          <input
+            type="number"
+            placeholder="Min Stock"
+            className={COMMON_STYLES.input(isDarkMode)}
+            value={form.min_stock}
+            onChange={(e) => setForm({ ...form, min_stock: e.target.value })}
+          />
+        </div>
+
+        <div className="flex gap-3 mt-6">
+          <button
+            onClick={handleSubmit}
+            className={`px-6 py-2 rounded-lg flex items-center gap-2 font-medium ${theme.button.primary}`}
+          >
+            {editingId ? <Save size={18} /> : <Plus size={18} />}
+            {editingId ? "Update Ingredient" : "Add Ingredient"}
+          </button>
+          
+          {editingId && (
+            <button
+              onClick={cancelEdit}
+              className={`px-4 py-2 rounded-lg border ${theme.border.default} ${theme.text.secondary} hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors`}
+            >
+              Cancel
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* TABLE SECTION */}
+      <div className={`${COMMON_STYLES.card(isDarkMode)} overflow-hidden`}>
+        <table className="w-full text-sm">
+          <thead className={`${theme.bg.subtle}`}>
+            <tr>
+              <th className="p-4 text-left">Name</th>
+              <th className="p-4 text-left">Unit</th>
+              <th className="p-4 text-left">Stock</th>
+              <th className="p-4 text-left">Min</th>
+              <th className="p-4 text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {ingredients.map((i) => {
+              const isLow = i.current_stock <= i.min_stock;
+              const isBeingEdited = editingId === i.id;
+
+              return (
+                <tr key={i.id} className={`border-t transition-colors ${isBeingEdited ? 'bg-blue-500/5' : ''}`}>
+                  <td className="p-4 font-medium">{i.name}</td>
+                  <td className="p-4">{i.unit}</td>
+                  <td className={`p-4 ${isLow ? "text-red-500 font-bold" : ""}`}>
+                    <div className="flex items-center gap-2">
+                      <Box size={14} />
+                      {i.current_stock}
+                      {isLow && <AlertCircle size={14} />}
+                    </div>
+                  </td>
+                  <td className="p-4 text-zinc-500">{i.min_stock}</td>
+                  <td className="p-4 text-right flex justify-end gap-2">
+                    <button
+                      title="Edit Details"
+                      onClick={() => startEdit(i)}
+                      className="p-2 rounded-md hover:bg-blue-500/10 text-blue-500"
+                    >
+                      <Edit2 size={16} />
+                    </button>
+                    <button
+                      title="Quick Restock"
+                      onClick={() => handleRestock(i.id)}
+                      className="p-2 rounded-md hover:bg-emerald-500/10 text-emerald-500"
+                    >
+                      <RefreshCw size={16} />
+                    </button>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+================================================================================
+FILE: components\ui\LoginView.jsx
+================================================================================
+
+import React, { useState } from 'react';
+import { User, Lock, Loader, Moon, Sun, AtSign, Building2 } from 'lucide-react';
+
+/* --- LOCAL STYLE CONFIGURATION (To ensure no crashes) --- */
+const FONTS = {
+  sans: '-apple-system, "Segoe UI", "Geist Sans", sans-serif',
+};
+
+const COMMON_STYLES = {
+  input: (isDarkMode) =>
+    `border px-3 py-2 rounded-md text-sm outline-none focus:border-neutral-400 transition-colors ${
+      isDarkMode
+        ? 'bg-black border-neutral-800 text-white placeholder:text-neutral-600'
+        : 'bg-white border-neutral-200 text-black placeholder:text-neutral-400'
+    }`,
+  select: (isDarkMode) =>
+    `border px-3 py-2 rounded-md text-sm outline-none appearance-none focus:border-neutral-400 cursor-pointer transition-colors ${
+      isDarkMode
+        ? 'bg-black border-neutral-800 text-white'
+        : 'bg-white border-neutral-200 text-black'
+    }`,
+  modal: (isDarkMode) =>
+    `rounded-2xl border shadow-2xl ${
+      isDarkMode ? 'bg-black border-neutral-800' : 'bg-white border-neutral-200'
+    }`,
+};
+
+const getTheme = (isDarkMode) => ({
+  bg: {
+    main: isDarkMode ? 'bg-black' : 'bg-white',
+    hover: isDarkMode ? 'hover:bg-neutral-900' : 'hover:bg-neutral-50',
+  },
+  text: {
+    main: isDarkMode ? 'text-white' : 'text-black',
+    secondary: isDarkMode ? 'text-neutral-400' : 'text-neutral-600',
+  },
+  button: {
+    primary: isDarkMode
+      ? 'bg-white text-black hover:bg-neutral-200'
+      : 'bg-black text-white hover:bg-neutral-800',
+    secondary: isDarkMode
+      ? 'bg-neutral-900 text-white hover:bg-neutral-800'
+      : 'bg-neutral-100 text-black hover:bg-neutral-200',
+  },
+});
+
+/* --- MAIN COMPONENT --- */
+export default function LoginView({ onLogin, isDarkMode, onToggleTheme }) {
+  const [isLogin, setIsLogin] = useState(true);
+  const [formData, setFormData] = useState({
+    restaurantId: '',
+    username: '',
+    email: '',
+    password: '',
+  });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const API_URL = import.meta.env.VITE_API_URL;
+  const theme = getTheme(isDarkMode);
+// components/ui/LoginView.jsx
+
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  setLoading(true);
+  setError('');
+
+  try {
+    if (isLogin) {
+      // LOGIN
+      const res = await fetch(`${API_URL}/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: formData.email, password: formData.password }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.detail || 'Login failed');
+      onLogin(data.user, data.access_token); // FastAPI returns access_token
+    } else {
+     
+      const res = await fetch(`${API_URL}/auth/restaurant-signup?restaurant_name=${encodeURIComponent(formData.restaurantId)}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          username: formData.username,
+          email: formData.email,
+          password: formData.password,
+          role: "admin",      // Hardcoded for signup
+          restaurant_id: 0    // Dummy ID, backend ignores this on signup
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.detail || 'Signup failed');
+      alert('Success! Logging you in...');
+      onLogin(data.user, data.access_token);
+    }
+  } catch (err) {
+    setError(err.message);
+  } finally {
+    setLoading(false);
+  }
+};
+  return (
+    <div
+      className={`min-h-screen flex items-center justify-center p-4 antialiased ${theme.bg.main} ${theme.text.main}`}
+      style={{ fontFamily: FONTS.sans }}
+    >
+      <button
+        onClick={onToggleTheme}
+        className={`absolute top-6 right-6 p-3 rounded-lg ${theme.button.secondary}`}
+      >
+        {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
+      </button>
+
+      <div className={`p-8 w-full max-w-md ${COMMON_STYLES.modal(isDarkMode)}`}>
+        <div className="text-center mb-8">
+          <h1 className="text-2xl font-semibold mb-2">
+            {isLogin ? 'Welcome Back' : 'Create Account'}
+          </h1>
+          <p className={`text-sm ${theme.text.secondary}`}>POS System</p>
+        </div>
+
+        {error && (
+          <div
+            className={`p-3 rounded-lg mb-4 text-sm font-medium text-center border ${
+              isDarkMode
+                ? 'bg-red-500/10 text-red-400 border-red-500/20'
+                : 'bg-red-50 text-red-600 border-red-200'
+            }`}
+          >
+            {error}
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label
+              className={`block text-xs font-medium uppercase mb-2 ${theme.text.secondary}`}
+            >
+              {isLogin ? 'Restaurant ID (Optional)' : 'Restaurant Name'}
+            </label>
+            <div className="relative group">
+              <Building2
+                className={`absolute left-3 top-3 ${theme.text.secondary}`}
+                size={18}
+              />
+              <input
+                required={!isLogin}
+                className={`w-full pl-10 pr-4 py-2.5 ${COMMON_STYLES.input(
+                  isDarkMode
+                )}`}
+                placeholder={isLogin ? 'e.g. 1' : 'My Awesome Restaurant'}
+                value={formData.restaurantId}
+                onChange={(e) =>
+                  setFormData({ ...formData, restaurantId: e.target.value })
+                }
+              />
+            </div>
+          </div>
+
+          {!isLogin && (
+            <div>
+              <label
+                className={`block text-xs font-medium uppercase mb-2 ${theme.text.secondary}`}
+              >
+                Username
+              </label>
+              <div className="relative group">
+                <User
+                  className={`absolute left-3 top-3 ${theme.text.secondary}`}
+                  size={18}
+                />
+                <input
+                  required
+                  className={`w-full pl-10 pr-4 py-2.5 ${COMMON_STYLES.input(
+                    isDarkMode
+                  )}`}
+                  placeholder="john_doe"
+                  value={formData.username}
+                  onChange={(e) =>
+                    setFormData({ ...formData, username: e.target.value })
+                  }
+                />
+              </div>
+            </div>
+          )}
+
+          <div>
+            <label
+              className={`block text-xs font-medium uppercase mb-2 ${theme.text.secondary}`}
+            >
+              Email
+            </label>
+            <div className="relative group">
+              <AtSign
+                className={`absolute left-3 top-3 ${theme.text.secondary}`}
+                size={18}
+              />
+              <input
+                type="email"
+                required
+                className={`w-full pl-10 pr-4 py-2.5 ${COMMON_STYLES.input(
+                  isDarkMode
+                )}`}
+                placeholder="name@example.com"
+                value={formData.email}
+                onChange={(e) =>
+                  setFormData({ ...formData, email: e.target.value })
+                }
+              />
+            </div>
+          </div>
+
+          <div>
+            <label
+              className={`block text-xs font-medium uppercase mb-2 ${theme.text.secondary}`}
+            >
+              Password
+            </label>
+            <div className="relative group">
+              <Lock
+                className={`absolute left-3 top-3 ${theme.text.secondary}`}
+                size={18}
+              />
+              <input
+                type="password"
+                required
+                className={`w-full pl-10 pr-4 py-2.5 ${COMMON_STYLES.input(
+                  isDarkMode
+                )}`}
+                placeholder="••••••••"
+                value={formData.password}
+                onChange={(e) =>
+                  setFormData({ ...formData, password: e.target.value })
+                }
+              />
+            </div>
+          </div>
+
+          <button
+            type="submit"
+            disabled={loading}
+            className={`w-full py-3 rounded-lg font-medium flex justify-center items-center gap-2 mt-6 ${theme.button.primary}`}
+          >
+            {loading && <Loader className="animate-spin" size={18} />}
+            {isLogin ? 'Login' : 'Register'}
+          </button>
+        </form>
+
+        <div className="mt-6 text-center">
+          <button
+            onClick={() => {
+              setIsLogin(!isLogin);
+              setError('');
+            }}
+            className={`font-medium text-sm transition-colors ${theme.text.secondary} ${theme.bg.hover.replace(
+              'hover:',
+              ''
+            )}`}
+          >
+            {isLogin ? 'Sign Up' : 'Login'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+================================================================================
+FILE: components\ui\ManagerDashboard.jsx
+================================================================================
+
+import React, { useEffect, useState } from "react";
+import { getTheme, COMMON_STYLES } from "./theme";
+import { TrendingUp, AlertTriangle, ShoppingCart, Package, Info } from "lucide-react";
+
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+
+export default function ManagerDashboard({ apiRequest, isDarkMode, settings }) {
+  const theme = getTheme(isDarkMode);
+
+  const [summary, setSummary] = useState(null);
+  const [lowStock, setLowStock] = useState([]);
+  const [topProducts, setTopProducts] = useState([]);
+  const [activeOrders, setActiveOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // Use dynamic setting from props, fallback to 20
+  const KITCHEN_CAPACITY = settings?.kitchenCapacity || 20;
+
+  const fetchDashboard = async () => {
+    try {
+      const [s, l, t, a] = await Promise.all([
+        apiRequest(`${API_URL}/dashboard/summary`),
+        apiRequest(`${API_URL}/dashboard/low-stock`),
+        apiRequest(`${API_URL}/dashboard/top-products`),
+        apiRequest(`${API_URL}/dashboard/active-orders`)
+      ]);
+
+      if (s.ok) setSummary(await s.json());
+      if (l.ok) setLowStock(await l.json());
+      if (t.ok) setTopProducts(await t.json());
+      if (a.ok) setActiveOrders(await a.json());
+      
+      setLoading(false);
+    } catch (err) {
+      console.error("Dashboard fetch failed", err);
+    }
+  };
+
+  useEffect(() => {
+    fetchDashboard();
+    const interval = setInterval(fetchDashboard, 5000); // Poll every 5 seconds
+    return () => clearInterval(interval);
+  }, []);
+
+  // ✅ FILTER: Only count orders that are truly 'active'
+  const trueActiveOrders = activeOrders.filter(
+    (o) => (o.status || "").toLowerCase() === "active"
+  );
+
+  const kitchenLoad = Math.min(trueActiveOrders.length / KITCHEN_CAPACITY, 1);
+
+  if (loading && !summary) {
+    return (
+      <div className="flex flex-col items-center justify-center h-64 space-y-4">
+        <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+        <p className="text-sm opacity-60">Synchronizing dashboard data...</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="max-w-7xl mx-auto p-8 space-y-8 animate-in fade-in duration-500">
+      
+      {/* SUMMARY CARDS */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* Revenue */}
+        <div className={`${COMMON_STYLES.card(isDarkMode)} p-6 flex items-center gap-4 border-l-4 border-l-green-500`}>
+          <div className="p-3 rounded-lg bg-green-500/10 text-green-400">
+            <TrendingUp size={24}/>
+          </div>
+          <div>
+            <p className="text-xs uppercase tracking-wide opacity-60">Today's Revenue</p>
+            <h2 className="text-2xl font-semibold font-mono">₹{summary?.today_revenue || 0}</h2>
+          </div>
+        </div>
+
+        {/* Total Orders */}
+        <div className={`${COMMON_STYLES.card(isDarkMode)} p-6 flex items-center gap-4 border-l-4 border-l-blue-500`}>
+          <div className="p-3 rounded-lg bg-blue-500/10 text-blue-400">
+            <ShoppingCart size={24}/>
+          </div>
+          <div>
+            <p className="text-xs uppercase tracking-wide opacity-60">Total Orders Today</p>
+            <h2 className="text-2xl font-semibold">{summary?.today_orders || 0}</h2>
+          </div>
+        </div>
+
+        {/* True Active Orders */}
+        <div className={`${COMMON_STYLES.card(isDarkMode)} p-6 flex items-center gap-4 border-l-4 border-l-orange-500`}>
+          <div className="p-3 rounded-lg bg-orange-500/10 text-orange-400">
+            <Package size={24}/>
+          </div>
+          <div>
+            <p className="text-xs uppercase tracking-wide opacity-60">Current Active Load</p>
+            <h2 className="text-2xl font-semibold">{trueActiveOrders.length}</h2>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        
+        {/* KITCHEN LOAD MONITOR */}
+        <div className={`${COMMON_STYLES.card(isDarkMode)} p-6`}>
+          <div className="flex justify-between items-center mb-5">
+            <h3 className="text-lg font-semibold">Live Kitchen Load</h3>
+            <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
+              kitchenLoad > 0.8 ? "bg-red-500/20 text-red-500" : "bg-green-500/20 text-green-500"
+            }`}>
+              {kitchenLoad > 0.8 ? "Critical" : "Stable"}
+            </span>
+          </div>
+
+          <div className="space-y-4">
+            <div className="flex justify-between text-sm opacity-70">
+              <span>Capacity Utilization</span>
+              <span className="font-mono font-bold">
+                {trueActiveOrders.length} / {KITCHEN_CAPACITY}
+              </span>
+            </div>
+
+            <div className="w-full h-4 rounded-full bg-zinc-800/50 overflow-hidden border border-zinc-700">
+              <div
+                className={`h-full transition-all duration-1000 ease-out ${
+                  kitchenLoad < 0.5 ? "bg-green-500" : kitchenLoad < 0.8 ? "bg-orange-500" : "bg-red-500"
+                }`}
+                style={{ width: `${kitchenLoad * 100}%` }}
+              />
+            </div>
+            <p className="text-[11px] opacity-50 flex items-center gap-1">
+              <Info size={12} /> Real-time tracking of orders currently in preparation.
+            </p>
+          </div>
+        </div>
+
+        {/* INVENTORY ALERTS */}
+        <div className={`${COMMON_STYLES.card(isDarkMode)} p-6`}>
+          <div className="flex items-center gap-2 mb-5">
+            <AlertTriangle size={18} className="text-orange-400"/>
+            <h3 className="text-lg font-semibold">Critical Stock Alerts</h3>
+          </div>
+
+          <div className="max-h-[140px] overflow-y-auto space-y-2 pr-2">
+            {lowStock.length === 0 ? (
+              <p className="text-sm opacity-40 italic py-4">Inventory levels are healthy.</p>
+            ) : (
+              lowStock.map(i => (
+                <div key={i.id} className="flex items-center justify-between p-3 rounded-lg bg-zinc-800/30 border border-zinc-700/50">
+                  <div>
+                    <p className="text-sm font-medium">{i.name}</p>
+                    <p className="text-[10px] opacity-50 uppercase">Min: {i.min_stock}</p>
+                  </div>
+                  <span className="font-mono text-red-400 font-bold bg-red-400/10 px-2 py-1 rounded">
+                    {i.current_stock}
+                  </span>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* ACTIVE ORDERS REAL-TIME LIST */}
+      <div className={`${COMMON_STYLES.card(isDarkMode)} overflow-hidden`}>
+        <div className="p-6 border-b border-zinc-800/50 flex justify-between items-center">
+          <h3 className="text-lg font-semibold">Active Tokens in Kitchen</h3>
+          <div className="flex items-center gap-2 text-xs opacity-50">
+            <div className="w-2 h-2 rounded-full bg-orange-500 animate-pulse"></div>
+            Live Updates
+          </div>
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead className={`${theme.bg.subtle} text-[10px] uppercase tracking-wider opacity-60`}>
+              <tr>
+                <th className="p-4 text-left font-bold">Token #</th>
+                <th className="p-4 text-left font-bold">Amount</th>
+                <th className="p-4 text-left font-bold">Status</th>
+                <th className="p-4 text-right font-bold">Order Time</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-zinc-800/50">
+              {trueActiveOrders.length === 0 ? (
+                <tr>
+                  <td colSpan="4" className="p-8 text-center opacity-40 italic">No orders currently being prepared.</td>
+                </tr>
+              ) : (
+                trueActiveOrders.map(o => (
+                  <tr key={o.id} className="hover:bg-white/5 transition-colors">
+                    <td className="p-4 font-mono font-bold text-lg text-blue-400">{o.token}</td>
+                    <td className="p-4 font-mono">₹{o.total_amount}</td>
+                    <td className="p-4">
+                      <span className="px-2 py-1 text-[10px] rounded bg-orange-500/10 text-orange-400 border border-orange-500/20 font-bold uppercase">
+                        {o.status}
+                      </span>
+                    </td>
+                    <td className="p-4 text-right opacity-50 text-xs">
+                      {new Date(o.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* TOP SELLING PRODUCTS */}
+      <div className={`${COMMON_STYLES.card(isDarkMode)} p-6`}>
+        <h3 className="text-lg font-semibold mb-5">Product Performance (Today)</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {topProducts.slice(0, 4).map((p, index) => (
+            <div key={p.product_id} className="p-4 rounded-xl bg-zinc-800/20 border border-zinc-800 flex flex-col items-center text-center">
+              <span className="text-[10px] uppercase font-bold opacity-30 mb-1">Rank #{index + 1}</span>
+              <p className="font-semibold text-sm mb-2">{p.name}</p>
+              <div className="text-xl font-bold text-green-400">{p.total_sold} <span className="text-[10px] opacity-50">Units</span></div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+================================================================================
+FILE: components\ui\MenuItemModal.jsx
+================================================================================
+
+import React, { useState, useEffect } from 'react';
+import { X, Save, Trash2, Box } from 'lucide-react';
+
+export default function MenuItemModal({ isOpen, onClose, onSave, onDelete, itemToEdit, categories, isDarkMode }) {
+  // Initialize form with stock
+  const [form, setForm] = useState({ name: '', price: '', category: 'General', stock: 0 });
+
+  // Populate form if editing, otherwise reset
+  useEffect(() => {
+    if (isOpen) {
+      if (itemToEdit) {
+        setForm({
+          name: itemToEdit.name || '',
+          price: itemToEdit.price || '',
+          category: itemToEdit.category || 'General',
+          stock: itemToEdit.stock || 0,
+        });
+      } else {
+        setForm({ name: '', price: '', category: 'General', stock: 0 });
+      }
+    }
+  }, [itemToEdit, isOpen]);
+
+  if (!isOpen) return null;
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    // Logic: Pass numeric values to match FastAPI/Pydantic expectations
+    onSave({ 
+        ...form, 
+        price: Number(form.price),
+        stock: Number(form.stock) 
+    });
+  };
+
+  const theme = {
+    bgCard: isDarkMode ? 'bg-slate-900 text-white' : 'bg-white text-stone-900',
+    input: isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-stone-50 border-stone-200',
+    border: isDarkMode ? 'border-slate-800' : 'border-stone-200',
+  };
+
+  return (
+    <div className="fixed inset-0 z-[80] flex items-center justify-center animate-in fade-in duration-200">
+      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
+      <div className={`relative w-full max-w-md ${theme.bgCard} rounded-xl shadow-2xl overflow-hidden`}>
+        
+        <div className={`p-4 border-b ${theme.border} flex justify-between items-center`}>
+          <h2 className="font-bold text-lg">{itemToEdit ? 'Edit Item' : 'Add New Item'}</h2>
+          <button onClick={onClose} className="p-1 hover:opacity-70"><X size={20}/></button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+          {/* Item Name */}
+          <div>
+            <label className="block text-xs font-bold mb-1 opacity-70 tracking-wider">ITEM NAME</label>
+            <input 
+              required
+              className={`w-full p-2 border rounded-lg outline-none transition-all focus:ring-2 focus:ring-blue-500 ${theme.input}`}
+              value={form.name}
+              onChange={e => setForm({...form, name: e.target.value})}
+              placeholder="e.g. Butter Chicken"
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            {/* Price */}
+            <div>
+              <label className="block text-xs font-bold mb-1 opacity-70 tracking-wider">PRICE (₹)</label>
+              <input 
+                required
+                type="number"
+                className={`w-full p-2 border rounded-lg outline-none transition-all focus:ring-2 focus:ring-blue-500 ${theme.input}`}
+                value={form.price}
+                onChange={e => setForm({...form, price: e.target.value})}
+                placeholder="0"
+              />
+            </div>
+
+            {/* Stock - REQUIRED FOR FASTAPI MODEL */}
+            <div>
+              <label className="block text-xs font-bold mb-1 opacity-70 tracking-wider">INITIAL STOCK</label>
+              <div className="relative">
+                <input 
+                  required
+                  type="number"
+                  className={`w-full p-2 border rounded-lg outline-none transition-all focus:ring-2 focus:ring-blue-500 ${theme.input}`}
+                  value={form.stock}
+                  onChange={e => setForm({...form, stock: e.target.value})}
+                  placeholder="0"
+                />
+                <Box size={14} className="absolute right-3 top-3 opacity-30" />
+              </div>
+            </div>
+          </div>
+
+          {/* Category Selection */}
+          <div>
+             <label className="block text-xs font-bold mb-1 opacity-70 tracking-wider">CATEGORY</label>
+             <div className="flex gap-2 flex-wrap mb-2">
+                {categories.map(cat => (
+                    <button 
+                        type="button"
+                        key={cat}
+                        onClick={() => setForm({...form, category: cat})}
+                        className={`px-3 py-1 rounded text-[10px] font-bold uppercase border transition-all ${form.category === cat ? 'bg-blue-600 text-white border-blue-600 shadow-lg shadow-blue-500/20' : `${theme.border} opacity-70 hover:opacity-100`}`}
+                    >
+                        {cat}
+                    </button>
+                ))}
+             </div>
+             <input 
+                className={`w-full p-2 border rounded-lg outline-none transition-all focus:ring-2 focus:ring-blue-500 ${theme.input}`}
+                value={form.category}
+                onChange={e => setForm({...form, category: e.target.value})}
+                placeholder="Or type custom category..."
+             />
+          </div>
+
+          {/* Action Buttons */}
+          <div className={`pt-4 border-t ${theme.border} flex gap-3`}>
+             {itemToEdit && (
+                 <button 
+                    type="button" 
+                    onClick={onDelete}
+                    title="Delete Item"
+                    className="p-3 rounded-lg border border-red-200 text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
+                 >
+                    <Trash2 size={20}/>
+                 </button>
+             )}
+             <button 
+                type="submit" 
+                className="flex-1 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg flex items-center justify-center gap-2 transition-all active:scale-[0.98] shadow-lg shadow-blue-500/20"
+             >
+                <Save size={18}/> {itemToEdit ? 'Update Item' : 'Save Item'}
+             </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+================================================================================
+FILE: components\ui\OrderDetailsModal.jsx
+================================================================================
+
+import React from 'react';
+
+export default function OrderDetailsModal({ order, onClose, onComplete, isDarkMode }) {
+  if (!order) return null;
+
+  // FIX: Force numeric calculation for the display
+  const total = order.items.reduce((acc, item) => acc + (Number(item.price) * (item.quantity || 1)), 0);
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+      <div className={`w-full max-w-sm rounded-2xl shadow-2xl border ${isDarkMode ? 'bg-[#0f172a] border-slate-800' : 'bg-white border-gray-100'} p-6`}>
+        <div className="flex justify-between items-start mb-4">
+          <div>
+            <h2 className="text-xl font-bold flex items-center gap-2">
+              Token {order.token}
+              <span className="text-[10px] bg-blue-600 px-2 py-0.5 rounded uppercase">#{order.displayId}</span>
+            </h2>
+            <p className="text-slate-500 text-xs mt-1">🕒 Preparing 3:11</p>
+          </div>
+          <button onClick={onClose} className="text-slate-500 hover:text-white text-xl">&times;</button>
+        </div>
+
+        <div className="border-y border-slate-800/50 py-4 my-4 space-y-3">
+          {order.items.map((item, i) => (
+            <div key={i} className="flex justify-between items-center text-sm">
+              <span>{item.name} <span className="text-slate-500 text-xs">x{item.quantity}</span></span>
+              <span className="font-semibold">₹{Number(item.price) * item.quantity}</span>
+            </div>
+          ))}
+        </div>
+
+        {/* THE FIX: Ensure total is not blank */}
+        <div className="flex justify-between items-center font-bold text-lg mb-6">
+          <span>Total Bill</span>
+          <span>₹{total.toFixed(0)}</span>
+        </div>
+
+        <button 
+          onClick={() => onComplete(order.id)}
+          className="w-full py-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl font-bold transition-all active:scale-95"
+        >
+          ✓ Mark Ready
+        </button>
+
+        <button onClick={onClose} className="w-full mt-4 text-slate-500 text-xs hover:underline">
+          Close Details
+        </button>
+      </div>
+    </div>
+  );
+}
+
+================================================================================
+FILE: components\ui\OrderTimer.jsx
+================================================================================
+
+import React, { useState, useEffect } from 'react';
+
+const OrderTimer = ({ startedAt, large = false }) => {
+  const [elapsed, setElapsed] = useState(0);
+
+  useEffect(() => {
+    const update = () => setElapsed(Math.floor((Date.now() - startedAt) / 1000));
+    update();
+    const i = setInterval(update, 1000);
+    return () => clearInterval(i);
+  }, [startedAt]);
+
+  const mins = Math.floor(elapsed / 60);
+  const secs = String(elapsed % 60).padStart(2, '0');
+  
+  const colorClass = mins > 15 ? 'text-red-500 font-bold' : mins > 10 ? 'text-orange-500' : 'text-stone-500';
+  const sizeClass = large ? 'text-2xl' : 'text-xs';
+
+  return <span className={`font-mono ${colorClass} ${sizeClass}`}>{mins}:{secs}</span>;
+};
+
+export default OrderTimer;
+
+================================================================================
+FILE: components\ui\POSView.jsx
+================================================================================
+
+import React, { useState, useMemo } from "react";
+import { Search, Plus, Minus, ShoppingCart, Box } from "lucide-react";
+import { getTheme, COMMON_STYLES, FONTS } from "./theme";
+
+export default function POSView({
+  menu,
+  categories,
+  cart,
+  selectedCategory,
+  setSelectedCategory,
+  availableTokens,
+  selectedToken,
+  onSetToken,
+  onAddToCart,
+  onRemoveFromCart,
+  onCheckout,
+  isDarkMode,
+  discount,
+  setDiscount,
+  taxRate,
+}) {
+  const theme = getTheme(isDarkMode);
+  const [search, setSearch] = useState("");
+
+  const filteredProducts = useMemo(() => {
+    let list = [];
+    if (selectedCategory === "All" || !selectedCategory) {
+      Object.values(menu).forEach(arr => (list = list.concat(arr)));
+    } else {
+      list = menu[selectedCategory] || [];
+    }
+    if (search) {
+      list = list.filter(p =>
+        p.name.toLowerCase().includes(search.toLowerCase())
+      );
+    }
+    return list;
+  }, [menu, selectedCategory, search]);
+
+  const cartSubtotal = cart.reduce((s, i) => s + i.price * i.quantity, 0);
+  const taxAmount = Math.max(0, cartSubtotal - discount) * (taxRate / 100);
+  const grandTotal = Math.round(
+    Math.max(0, cartSubtotal - discount) + taxAmount
+  );
+
+  const getCartQty = id => {
+    const item = cart.find(i => i.id === id);
+    return item ? item.quantity : 0;
+  };
+
+  return (
+    <div
+      className={`flex h-full transition-colors duration-300 ${theme.bg.main} ${theme.text.main}`}
+      style={{ fontFamily: FONTS.sans }}
+    >
+      {/* LEFT: PRODUCTS */}
+      <div className={`flex-1 flex flex-col border-r ${theme.border.default}`}>
+
+        {/* SEARCH + CATEGORY */}
+        <div className={`p-3 space-y-2 border-b ${theme.border.default} ${theme.bg.card}`}>
+          <input
+            className={COMMON_STYLES.input(isDarkMode)}
+            placeholder="Search products..."
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+          />
+
+          <div className="flex gap-2 overflow-x-auto pb-1">
+            {["All", ...categories].map(cat => (
+              <button
+                key={cat}
+                onClick={() => setSelectedCategory(cat)}
+                className={`px-3 py-1 rounded-md text-xs whitespace-nowrap transition-all ${
+                  selectedCategory === cat
+                    ? theme.button.primary
+                    : theme.button.secondary
+                }`}
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* PRODUCT GRID */}
+        <div className="flex-1 overflow-auto p-3 grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-7 gap-3 content-start">
+          {filteredProducts.map(p => {
+            const qty = getCartQty(p.id);
+
+            return (
+              <div
+                key={p.id}
+                className={`${COMMON_STYLES.card(isDarkMode)} h-[105px] p-3 flex flex-col justify-between hover:border-blue-500 transition-all`}
+              >
+                <div>
+                  <p className="text-[10px] uppercase font-bold opacity-40">{p.category}</p>
+                  <h3 className="text-sm font-semibold leading-tight line-clamp-1">
+                    {p.name}
+                  </h3>
+                  <div className="flex items-center gap-1 text-[11px] opacity-50 mt-1">
+                    <Box size={10} />
+                    <span>{p.stock}</span>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between mt-2">
+                  <span className="text-sm font-bold">₹{p.price}</span>
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      onClick={() => onRemoveFromCart(p)}
+                      className={`p-1 rounded-md transition-colors ${theme.bg.subtle} hover:bg-red-500/20 text-red-500`}
+                    >
+                      <Minus size={12} />
+                    </button>
+                    <span className="text-xs font-bold w-4 text-center">{qty}</span>
+                    <button
+                      disabled={p.stock <= 0}
+                      onClick={() => onAddToCart(p)}
+                      className={`p-1 rounded-md transition-colors ${theme.bg.subtle} hover:bg-green-500/20 text-green-500 disabled:opacity-20`}
+                    >
+                      <Plus size={12} />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* RIGHT: CART / KITCHEN QUEUE STYLE PANEL */}
+      <div className={`w-84 flex flex-col border-l ${theme.border.default} ${theme.bg.card} transition-colors duration-300`}>
+        
+        {/* HEADER */}
+        <div className={`p-4 flex justify-between items-center border-b ${theme.border.default}`}>
+          <div className="flex items-center gap-2">
+            <ShoppingCart size={18} className="text-blue-500" />
+            <span className="font-bold">Current Cart</span>
+          </div>
+
+          <select
+            value={selectedToken}
+            onChange={e => onSetToken(e.target.value)}
+            className={`text-sm px-2 py-1 rounded border ${theme.bg.main} ${theme.border.default} outline-none`}
+          >
+            {availableTokens.map(t => (
+              <option key={t}>Token {t}</option>
+            ))}
+          </select>
+        </div>
+
+        {/* CART ITEMS */}
+        <div className="flex-1 overflow-auto p-4 space-y-3">
+          {cart.length === 0 ? (
+            <div className="h-full flex flex-col items-center justify-center opacity-20">
+              <ShoppingCart size={48} strokeWidth={1} />
+              <p className="text-xs font-bold uppercase mt-2">Empty Cart</p>
+            </div>
+          ) : (
+            cart.map(item => (
+              <div key={item.id} className={`flex items-center justify-between p-3 rounded-lg border ${theme.border.default} ${theme.bg.subtle}`}>
+                <div className="flex flex-col">
+                  <span className="font-medium">{item.name}</span>
+                  <span className="text-xs opacity-50">₹{item.price} × {item.quantity}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button onClick={() => onRemoveFromCart(item)} className="p-1.5 rounded-md bg-zinc-500/10 hover:bg-zinc-500/20 transition-colors">
+                    <Minus size={14} />
+                  </button>
+                  <span className="font-bold text-xs">{item.quantity}</span>
+                  <button onClick={() => onAddToCart(item)} className="p-1.5 rounded-md bg-zinc-500/10 hover:bg-zinc-500/20 transition-colors">
+                    <Plus size={14} />
+                  </button>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+
+        {/* TOTALS */}
+        <div className={`p-4 border-t ${theme.border.default} space-y-3 bg-zinc-500/5`}>
+          <div className="space-y-1">
+            <div className="flex justify-between text-xs opacity-60">
+              <span>Subtotal</span>
+              <span>₹{cartSubtotal}</span>
+            </div>
+            <div className="flex justify-between text-xs opacity-60">
+              <span>GST (5%)</span>
+              <span>₹{taxAmount.toFixed(2)}</span>
+            </div>
+          </div>
+
+          <div className="flex justify-between items-center pt-2">
+            <span className="font-bold">Payable Amount</span>
+            <span className="text-xl font-black text-blue-500">₹{grandTotal}</span>
+          </div>
+
+          <button
+            disabled={cart.length === 0}
+            onClick={onCheckout}
+            className={`${theme.button.primary} w-full py-3 rounded-xl font-bold uppercase tracking-wider shadow-lg shadow-blue-500/20 transition-transform active:scale-95 disabled:opacity-30 disabled:grayscale`}
+          >
+            Confirm Order
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+================================================================================
+FILE: components\ui\ProductManagement.jsx
+================================================================================
+
+import React, { useState } from "react";
+
+import { getTheme, COMMON_STYLES, FONTS } from "./theme";
+import { Plus, Trash2, Edit2, Box, Check } from "lucide-react";
+export default function ProductManagement({
+  rawProducts,
+  categories,
+  isDarkMode,
+  onAdd,
+  onUpdate,
+  onDelete,
+}) {
+  const theme = getTheme(isDarkMode);
+
+  const [isAdding, setIsAdding] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+
+  const [form, setForm] = useState({
+    id: null,
+    name: "",
+    price: "",
+    stock: "",
+    category: "",
+  });
+
+  const resetForm = () => {
+    setForm({ id: null, name: "", price: "", stock: "", category: "" });
+    setIsAdding(false);
+    setIsEditing(false);
+  };
+
+  const handleSubmit = async () => {
+    // 1. Check for empty required fields
+    if (!form.name || form.price === "" || !form.category) {
+      alert("Fill required fields");
+      return;
+    }
+
+    // 2. Parse numbers for validation
+    const priceNum = parseFloat(form.price);
+    const stockNum = parseInt(form.stock);
+
+    // 3. STRICT VALIDATION: Prevent negative values
+    if (isNaN(priceNum) || priceNum < 0) {
+      alert("Price cannot be negative");
+      return;
+    }
+
+    if (isNaN(stockNum) || stockNum < 0) {
+      alert("Stock cannot be negative");
+      return;
+    }
+
+    // 4. Proceed with API logic
+    if (isEditing) {
+      await onUpdate(form);
+    } else {
+      await onAdd(form);
+    }
+
+    resetForm();
+  };
+
+  const startEdit = (p) => {
+    setIsAdding(true);
+    setIsEditing(true);
+    
+    // ✅ FIX: Use fallback values to prevent "null" crashing the inputs
+    setForm({
+      id: p.id,
+      name: p.name || "",
+      price: p.price !== undefined && p.price !== null ? p.price.toString() : "",
+      stock: p.stock !== undefined && p.stock !== null ? p.stock.toString() : "0",
+      category: p.category || "",
+    });
+
+    // Smooth scroll to the form at the top
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  return (
+    <div
+      className={`p-8 ${theme.bg.main} ${theme.text.main}`}
+      style={{ fontFamily: FONTS.sans }}
+    >
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-xl font-semibold">
+          Products ({rawProducts.length})
+        </h2>
+        <button
+          onClick={() => {
+            setIsAdding(true);
+            setIsEditing(false);
+          }}
+          className={`px-4 py-2 rounded-md text-sm flex items-center gap-2 ${theme.button.primary}`}
+        >
+          <Plus size={16} /> Add Product
+        </button>
+      </div>
+
+      {isAdding && (
+        <div className={`p-6 mb-6 rounded-lg border ${COMMON_STYLES.card(isDarkMode)}`}>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {/* Name Input */}
+            <input
+              placeholder="Name"
+              value={form.name}
+              onChange={(e) => setForm({ ...form, name: e.target.value })}
+              className={COMMON_STYLES.input(isDarkMode)}
+            />
+            
+            {/* Price Input with Red Border on Negative */}
+            <div className="relative">
+              <input
+                type="number"
+                min="0"
+                step="0.01"
+                placeholder="Price"
+                value={form.price}
+                onChange={(e) => setForm({ ...form, price: e.target.value })}
+                className={`${COMMON_STYLES.input(isDarkMode)} w-full ${
+                  parseFloat(form.price) < 0 ? "border-red-500 ring-1 ring-red-500" : ""
+                }`}
+              />
+              {parseFloat(form.price) < 0 && (
+                <p className="text-[10px] text-red-500 mt-1 absolute">Negative price not allowed</p>
+              )}
+            </div>
+
+            {/* Stock Input with Red Border on Negative */}
+            <div className="relative">
+              <input
+                type="number"
+                min="0"
+                placeholder="Stock"
+                value={form.stock}
+                onChange={(e) => setForm({ ...form, stock: e.target.value })}
+                className={`${COMMON_STYLES.input(isDarkMode)} w-full ${
+                  parseInt(form.stock) < 0 ? "border-red-500 ring-1 ring-red-500" : ""
+                }`}
+              />
+              {parseInt(form.stock) < 0 && (
+                <p className="text-[10px] text-red-500 mt-1 absolute">Negative stock not allowed</p>
+              )}
+            </div>
+
+            {/* Category Select */}
+            <input
+              list="category-options"
+              placeholder="Category"
+              value={form.category}
+              onChange={(e) => setForm({ ...form, category: e.target.value })}
+              className={COMMON_STYLES.input(isDarkMode)}
+            />
+            <datalist id="category-options">
+              {categories.map((c) => (
+                <option key={c} value={c} />
+              ))}
+            </datalist>
+          </div>
+
+          <div className="flex justify-end items-center gap-3 mt-8 pt-4 border-t border-zinc-800/50">
+  <button 
+    onClick={resetForm} 
+    className={`px-6 py-2 rounded-lg text-sm font-medium transition-all opacity-70 hover:opacity-100 hover:bg-zinc-800/50 ${theme.text.main}`}
+  >
+    Cancel
+  </button>
+  
+  <button
+    onClick={handleSubmit}
+    disabled={parseFloat(form.price) < 0 || parseInt(form.stock) < 0 || !form.name}
+    className={`px-8 py-2 rounded-lg text-sm font-bold shadow-lg transition-all flex items-center gap-2 ${theme.button.primary} ${
+      (parseFloat(form.price) < 0 || parseInt(form.stock) < 0 || !form.name) 
+      ? "opacity-40 cursor-not-allowed grayscale" 
+      : "hover:scale-105 active:scale-95"
+    }`}
+  >
+    {isEditing ? <Check size={16} /> : <Plus size={16} />}
+    {isEditing ? "Update Product" : "Save Product"}
+  </button>
+</div>
+        </div>
+      )}
+
+      {/* TABLE SECTION */}
+      <div className="rounded-lg border border-zinc-800 overflow-hidden">
+        <table className="w-full text-sm">
+          <thead className={`${theme.bg.subtle} text-xs uppercase`}>
+            <tr>
+              <th className="p-4 text-left">Name</th>
+              <th className="p-4 text-left">Category</th>
+              <th className="p-4 text-left">Stock</th>
+              <th className="p-4 text-left">Price</th>
+              <th className="p-4 text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-zinc-800">
+            {rawProducts.map((p) => (
+              <tr key={p.id} className="hover:bg-zinc-900/50 transition-colors">
+                <td className="p-4 font-medium">{p.name}</td>
+                <td className="p-4 opacity-70">{p.category}</td>
+                <td className="p-4">
+                  <div className="flex items-center gap-2">
+                    <Box size={14} className="opacity-50" />
+                    <span className={p.stock <= 5 ? "text-red-500 font-bold" : ""}>
+                      {p.stock}
+                    </span>
+                  </div>
+                </td>
+                <td className="p-4 font-semibold">₹{p.price}</td>
+                <td className="p-4 text-right flex justify-end gap-2">
+                  <button onClick={() => startEdit(p)} className="p-2 hover:text-blue-500">
+                    <Edit2 size={16} />
+                  </button>
+                  <button onClick={() => onDelete(p.id)} className="p-2 text-red-500 hover:bg-red-500/10 rounded">
+                    <Trash2 size={16} />
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+================================================================================
+FILE: components\ui\RecipeManager.jsx
+================================================================================
+
+import React, { useEffect, useState } from "react";
+import { Plus, Trash2, Pencil, Check, X } from "lucide-react";
+import { getTheme, COMMON_STYLES } from "./theme";
+
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+
+export default function RecipeManager({ apiRequest, isDarkMode, products }) {
+  const theme = getTheme(isDarkMode);
+
+  const [ingredients, setIngredients] = useState([]);
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [recipe, setRecipe] = useState([]);
+
+  const [loading, setLoading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+
+  const [editingId, setEditingId] = useState(null);
+  const [editingQty, setEditingQty] = useState("");
+
+  const [newEntry, setNewEntry] = useState({
+    ingredient_id: "",
+    quantity_required: ""
+  });
+
+  const [error, setError] = useState(null);
+
+  // ------------------------------------------------
+  // FETCH INGREDIENTS
+  // ------------------------------------------------
+  const fetchIngredients = async () => {
+    try {
+      const res = await apiRequest(`${API_URL}/ingredients/`);
+      const data = await res.json();
+
+      if (!res.ok) throw new Error(data.detail || "Failed to load ingredients");
+
+      setIngredients(data);
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
+  // ------------------------------------------------
+  // FETCH PRODUCT RECIPE
+  // ------------------------------------------------
+  const fetchRecipe = async (productId) => {
+    if (!productId) return;
+
+    try {
+      setLoading(true);
+
+      const res = await apiRequest(`${API_URL}/recipes/product/${productId}`);
+      const data = await res.json();
+
+      if (!res.ok) throw new Error(data.detail || "Failed to fetch recipe");
+
+      setRecipe(data);
+    } catch (err) {
+      setError(err.message);
+      setRecipe([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchIngredients();
+  }, []);
+
+  useEffect(() => {
+    if (selectedProduct) fetchRecipe(selectedProduct);
+  }, [selectedProduct]);
+
+  // ------------------------------------------------
+  // ADD RECIPE ENTRY
+  // ------------------------------------------------
+  const handleAddRecipe = async () => {
+    if (!selectedProduct) {
+      alert("Select a product first");
+      return;
+    }
+    const qty = parseFloat(newEntry.quantity_required);
+    if (!newEntry.ingredient_id || isNaN(qty) || qty <= 0) {
+      alert("Please enter a valid quantity greater than 0 (e.g., 0.5)");
+      return;
+    }
+
+    try {
+      setSubmitting(true);
+
+      const res = await apiRequest(`${API_URL}/recipes/`, {
+        method: "POST",
+        body: JSON.stringify({
+          product_id: Number(selectedProduct),
+          ingredient_id: Number(newEntry.ingredient_id),
+          quantity_required: qty
+        })
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) throw new Error(data.detail || "Failed to add recipe");
+
+      setNewEntry({
+        ingredient_id: "",
+        quantity_required: ""
+      });
+
+      fetchRecipe(selectedProduct);
+    } catch (err) {
+      alert(err.message);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  // ------------------------------------------------
+  // DELETE RECIPE
+  // ------------------------------------------------
+  const handleDelete = async (recipeId) => {
+    if (!confirm("Remove ingredient from recipe?")) return;
+
+    try {
+      const res = await apiRequest(`${API_URL}/recipes/${recipeId}`, {
+        method: "DELETE"
+      });
+
+      if (!res.ok) throw new Error("Failed to delete recipe");
+
+      setRecipe((prev) => prev.filter((r) => r.id !== recipeId));
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+
+  // ------------------------------------------------
+  // START EDIT
+  // ------------------------------------------------
+  const startEdit = (recipe) => {
+    setEditingId(recipe.id);
+    setEditingQty(recipe.quantity_required);
+  };
+
+  // ------------------------------------------------
+  // CANCEL EDIT
+  // ------------------------------------------------
+  const cancelEdit = () => {
+    setEditingId(null);
+    setEditingQty("");
+  };
+
+  // ------------------------------------------------
+  // SAVE EDIT
+  // ------------------------------------------------
+  const saveEdit = async (recipeId) => {
+    if (isNaN(qty) || qty <= 0) {
+      alert("Quantity must be greater than 0");
+      return;
+    }
+    try {
+      const res = await apiRequest(`${API_URL}/recipes/${recipeId}`, {
+        method: "PUT",
+        body: JSON.stringify({
+          product_id: Number(selectedProduct),
+          ingredient_id: recipe.find((r) => r.id === recipeId).ingredient_id,
+          quantity_required: qty
+        })
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) throw new Error(data.detail || "Update failed");
+
+      setRecipe((prev) =>
+        prev.map((r) =>
+          r.id === recipeId ? { ...r, quantity_required: editingQty } : r
+        )
+      );
+
+      setEditingId(null);
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+
+  // ------------------------------------------------
+  // UTILS
+  // ------------------------------------------------
+  const getIngredientName = (id) => {
+    const ing = ingredients.find((i) => i.id === id);
+    return ing ? ing.name : "Unknown";
+  };
+
+  // ------------------------------------------------
+  // UI
+  // ------------------------------------------------
+  return (
+    <div className="max-w-6xl mx-auto p-8">
+      <h2 className="text-2xl font-semibold mb-8">Recipe Management</h2>
+
+      {error && (
+        <div className="bg-red-500/10 text-red-500 p-3 mb-4 rounded">
+          {error}
+        </div>
+      )}
+
+      {/* PRODUCT SELECT */}
+      <div className={`${COMMON_STYLES.card(isDarkMode)} p-6 mb-8`}>
+        <label className="block mb-2 text-sm font-medium">
+          Select Product
+        </label>
+
+        <select
+          className={COMMON_STYLES.select(isDarkMode)}
+          value={selectedProduct || ""}
+          onChange={(e) => setSelectedProduct(e.target.value)}
+        >
+          <option value="">Choose product</option>
+
+          {products.map((p) => (
+            <option key={p.id} value={p.id}>
+              {p.name}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {selectedProduct && (
+        <>
+          {/* ADD RECIPE */}
+          <div className={`${COMMON_STYLES.card(isDarkMode)} p-6 mb-8`}>
+            <h3 className="text-sm font-semibold mb-4 flex items-center gap-2">
+              <Plus size={16} /> Add Ingredient
+            </h3>
+
+            <div className="grid grid-cols-3 gap-4">
+              <select
+                className={COMMON_STYLES.select(isDarkMode)}
+                value={newEntry.ingredient_id}
+                onChange={(e) =>
+                  setNewEntry({
+                    ...newEntry,
+                    ingredient_id: e.target.value
+                  })
+                }
+              >
+                <option value="">Select Ingredient</option>
+
+                {ingredients.map((i) => (
+                  <option key={i.id} value={i.id}>
+                    {i.name}
+                  </option>
+                ))}
+              </select>
+
+              <input
+                type="number"
+                placeholder="Quantity"
+                step="any" 
+                min="0.01"
+                className={COMMON_STYLES.input(isDarkMode)}
+                value={newEntry.quantity_required}
+                onChange={(e) =>
+                  setNewEntry({
+                    ...newEntry,
+                    quantity_required: e.target.value
+                  })
+                }
+              />
+
+              <button
+                onClick={handleAddRecipe}
+                disabled={submitting}
+                className={theme.button.primary}
+              >
+                {submitting ? "Adding..." : "Add"}
+              </button>
+            </div>
+          </div>
+
+          {/* RECIPE TABLE */}
+          <div className={`${COMMON_STYLES.card(isDarkMode)} overflow-hidden`}>
+            <table className="w-full text-sm">
+              <thead className={theme.bg.subtle}>
+                <tr>
+                  <th className="p-4 text-left">Ingredient</th>
+                  <th className="p-4 text-left">Quantity</th>
+                  <th className="p-4 text-right">Actions</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {recipe.map((r) => (
+                  <tr key={r.id} className="border-t">
+                    <td className="p-4">
+                      {getIngredientName(r.ingredient_id)}
+                    </td>
+
+                    <td className="p-4">
+                      {editingId === r.id ? (
+                        <input
+                          type="number"
+                          step="any"    // ✅ Allows any decimal point
+                          min="0.001"
+                          className={COMMON_STYLES.input(isDarkMode)}
+                          value={editingQty}
+                          onChange={(e) => setEditingQty(e.target.value)}
+                        />
+                      ) : (
+                        r.quantity_required
+                      )}
+                    </td>
+
+                    <td className="p-4 text-right flex justify-end gap-2">
+                      {editingId === r.id ? (
+                        <>
+                          <button
+                            onClick={() => saveEdit(r.id)}
+                            className="text-green-500"
+                          >
+                            <Check size={16} />
+                          </button>
+
+                          <button
+                            onClick={cancelEdit}
+                            className="text-gray-500"
+                          >
+                            <X size={16} />
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <button
+                            onClick={() => startEdit(r)}
+                            className="text-blue-500"
+                          >
+                            <Pencil size={16} />
+                          </button>
+
+                          <button
+                            onClick={() => handleDelete(r.id)}
+                            className="text-red-500"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+
+            {!loading && recipe.length === 0 && (
+              <div className="p-6 text-center text-sm opacity-70">
+                No recipe defined for this product
+              </div>
+            )}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+================================================================================
+FILE: components\ui\RestaurantVendorUI.jsx
+================================================================================
+
+// ✅ Added useCallback to the imports
+import React, { useEffect, useState, useMemo, useRef, useCallback } from "react";
+import {
+  LogOut,
+  LayoutDashboard,
+  Coffee,
+  Settings,
+  User,
+  Sun,
+  Moon,
+  Bell,
+  Plus,
+  Trash2,
+  Wifi,
+  Box,
+  BookOpen
+} from "lucide-react";
+import { getTheme, COMMON_STYLES, FONTS } from "./theme";
+import POSView from "./POSView";
+import CheckoutModal from "./CheckoutModal";
+import SalesReport from "./SalesReport";
+import AdminSettingsModal from "./AdminSettingsModal";
+import ActiveOrdersDrawer from "./ActiveOrdersDrawer";
+import { getUPIQR } from "./utils";
+import InventoryManager from "./InventoryManager";
+import ManagerDashboard from "./ManagerDashboard";
+import ProductManagement from "./ProductManagement";
+import RecipeManager from "./RecipeManager";
+const API_URL =  "http://127.0.0.1:8000";
+const apiRequest = async (url, options = {}) => {
+  const token = localStorage.getItem("auth_token");
+  // Ensure we don't have double slashes if the user provided one in .env
+  const cleanUrl = url.replace(/([^:]\/)\/+/g, "$1"); 
+  
+  const headers = {
+    "Content-Type": "application/json",
+    ...options.headers,
+    Authorization: `Bearer ${token}`,
+  };
+
+  const response = await fetch(cleanUrl, { ...options, headers });
+  
+  if (response.status === 401) {
+    localStorage.removeItem("auth_token");
+    localStorage.removeItem("user_role");
+    window.location.reload(); 
+  }
+  return response;
+};
+
+
+ 
+
+export default function RestaurantVendorUI({
+  user,
+  onLogout,
+  isDarkMode,
+  onToggleTheme,
+}) {
+ 
+  const theme = getTheme(isDarkMode);
+  const token = localStorage.getItem("auth_token");
+  const getUsername = () => 
+  user?.username || localStorage.getItem("username") || "User";
+  // Helpers
+  const getRestaurantId = () =>
+    user?.restaurantId || user?.user?.restaurantId || user?.restaurant_id || 1;
+  const getUserRole = () =>
+    user?.role ||
+    user?.user?.role ||
+    localStorage.getItem("user_role") ||
+    "cashier";
+  const userRole = getUserRole();
+  const displayName = getUsername();
+
+  // --- STATE ---
+  const [orders, setOrders] = useState([]);
+  const [rawProducts, setRawProducts] = useState([]);
+  const [menu, setMenu] = useState({});
+  const [categories, setCategories] = useState([]);
+  const [cart, setCart] = useState([]);
+  const [usersList, setUsersList] = useState([]);
+  const [salesHistory, setSalesHistory] = useState([]);
+  const [reportDate, setReportDate] = useState(
+    new Date().toLocaleDateString('en-CA')
+  );
+  const [showActiveOrders, setShowActiveOrders] = useState(false);
+  const [showCheckout, setShowCheckout] = useState(false);
+  const [activeTab, setActiveTab] = useState(
+    ["admin", "manager"].includes(userRole) ? "dashboard" : "pos"
+  );
+  const [settingsOpen, setSettingsOpen] = useState(false);
+
+  const [dockConnected, setDockConnected] = useState(false);
+  // Add this with your other refs/state
+  const portRef = useRef(null);
+  // Admin State (Shared with POSView)
+  const [isAddingItem, setIsAddingItem] = useState(false);
+  const [newItem, setNewItem] = useState({
+    name: "",
+    price: "",
+    category: "",
+    stock: "",
+    id: null,
+  });
+  const [isCreatingCategory, setIsCreatingCategory] = useState(false);
+  const [newUser, setNewUser] = useState({
+    username: "",
+    email: "",
+    password: "",
+    role: "cashier",
+  });
+  const [isHistoryLoading, setIsHistoryLoading] = useState(false);
+  // POS Logic
+  const [selectedToken, setSelectedToken] = useState("1");
+  const [selectedCategory, setSelectedCategory] = useState("All");
+  const [discount, setDiscount] = useState(0);
+  const [taxRate] = useState(5);
+  const [settings, setSettings,] = useState({ upiId: "", payeeName: "",kitchenCapacity: 20 });
+  const [activeUpiData, setActiveUpiData] = useState(null);
+
+  const hasFetched = useRef(false);
+  const [editingUser, setEditingUser] = useState(null);
+
+  // --- API ---
+  const refreshProducts = async () => {
+    try {
+      const res = await apiRequest(`${API_URL}/products/`)
+      if (res.ok) {
+        const list = await res.json();
+        const productList = Array.isArray(list) ? list : list.products || [];
+        setRawProducts(productList);
+        const grouped = {};
+        const cats = new Set();
+        productList.forEach((p) => {
+          const cat = p.category || "General";
+          if (!grouped[cat]) grouped[cat] = [];
+          cats.add(cat);
+          grouped[cat].push({
+            id: Number(p.id),
+            name: p.name,
+            price: p.price !== null ? Number(p.price) : 0, // ✅ Ensure Number
+            stock: p.stock !== null ? Number(p.stock) : 0, // ✅ Ensure Number
+            category: cat,
+          });
+        });
+        setMenu(grouped);
+        setCategories(Array.from(cats));
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const refreshUsers = async () => {
+    try {
+      const userRes = await apiRequest(`${API_URL}/staff/`)
+      if (userRes.ok) setUsersList(await userRes.json());
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const fetchActiveOrders = async () => {
+    try {
+      const res = await apiRequest(`${API_URL}/orders/`);
+      if (res.ok) {
+        const serverOrders = await res.json();
+        if (Array.isArray(serverOrders)) {
+          // ✅ FIX: Strict filter for "active" status
+          const activeOnly = serverOrders.filter(
+            (o) => (o.status || "").toLowerCase() === "active"
+          );
+
+          setOrders(
+            activeOnly.map((o) => ({
+              ...o,
+              // Use the actual backend keys
+              startedAt: o.created_at || o.startedAt || Date.now(),
+              paymentMethod: (o.payment_method || "cash").toLowerCase(),
+              total: Number(o.total_amount || 0),
+              // Ensure items are mapped correctly so they don't show as empty on refresh
+              items: (o.items || []).map(it => {
+                const product = rawProducts.find(p => p.id === it.product_id);
+                return {
+                  name: product ? product.name : "Item",
+                  quantity: it.quantity
+                };
+              })
+            }))
+          );
+        }
+      }
+    } catch (e) {
+      console.error("Polling error:", e);
+    }
+  };
+  const fetchSalesHistory = useCallback(async (date) => {
+    if (activeTab !== "dashboard") return;
+  
+    setIsHistoryLoading(true);
+    try {
+      const res = await apiRequest(`${API_URL}/orders/history?date=${date}`);
+      if (!res.ok) throw new Error("Failed to fetch history");
+  
+      const data = await res.json();
+      setSalesHistory(data.orders || []);
+    } catch (err) {
+      console.error("Sales history fetch failed:", err);
+      setSalesHistory([]);
+    } finally {
+      // Add a slight delay so the user sees the transition
+      setTimeout(() => setIsHistoryLoading(false), 300);
+    }
+  }, [activeTab]); // Removed API_URL from deps if it's a constant to be safer
+  useEffect(() => {
+    if (hasFetched.current) return;
+    hasFetched.current = true;
+    const load = async () => {
+      await refreshProducts();
+      await fetchActiveOrders();
+      try {
+        const sRes = await apiRequest(`${API_URL}/settings/`)
+        if (sRes.ok) {
+          const s = await sRes.json();
+          setSettings({ upiId: s.upi_id, payeeName: s.payee_name ,kitchenCapacity: s.kitchen_capacity || 20});
+        }
+        if (userRole === "admin") await refreshUsers();
+      } catch (e) {}
+    };
+    load();
+    const interval = setInterval(fetchActiveOrders, 3000);
+    return () => clearInterval(interval);
+  }, [token, API_URL, userRole]);
+
+  useEffect(() => {
+    if (!["admin", "manager"].includes(userRole) && activeTab === "dashboard") {
+      setActiveTab("menu");
+    }
+  }, [userRole, activeTab]);
+
+  useEffect(() => {
+    if (activeTab === "dashboard" && ["admin", "manager"].includes(userRole)) {
+      fetchSalesHistory(reportDate);
+    }
+  }, [activeTab, reportDate, userRole]);
+
+  // --- HANDLERS ---
+
+  // 1. ADD Product
+  const handleAdminAddProduct = async (formData) => {
+    try {
+      const payload = {
+        name: formData.name,
+        price: Number(formData.price),
+        stock: Number(formData.stock) || 0,
+        category: formData.category,
+      };
+  
+      const res = await apiRequest(`${API_URL}/products/`, {
+        method: "POST",
+        body: JSON.stringify(payload),
+      });
+  
+      const data = await res.json();
+  
+      if (!res.ok) {
+        console.error("Add failed:", data);
+        alert(data.detail || "Failed to add product");
+        return;
+      }
+  
+      await refreshProducts();
+    } catch (err) {
+      console.error("Add error:", err);
+    }
+  };
+
+  // 2. UPDATE Product (New Function for PUT Route)
+  const handleAdminUpdateProduct = async (formData) => {
+    try {
+      const payload = {
+        name: formData.name,
+        price: Number(formData.price),
+        stock: Number(formData.stock) || 0,
+        category: formData.category,
+      };
+  
+      const res = await apiRequest(
+        `${API_URL}/products/${formData.id}`,
+        {
+          method: "PUT",
+          body: JSON.stringify(payload),
+        }
+      );
+  
+      const data = await res.json();
+  
+      if (!res.ok) {
+        console.error("Update failed:", data);
+        alert(data.detail || "Failed to update product");
+        return;
+      }
+  
+      await refreshProducts();
+    } catch (err) {
+      console.error("Update error:", err);
+    }
+  };
+
+  const handleAdminAddUser = async () => {
+    if (!newUser.username || !newUser.email || !newUser.password) {
+      return alert("Fill all fields");
+    }
+    const res = await apiRequest(`${API_URL}/staff/`, {
+      method: "POST",
+     
+      body: JSON.stringify(newUser),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      alert(data.detail || "Failed to create staff");
+      return;
+    }
+    setNewUser({ username: "", email: "", password: "", role: "cashier" });
+    refreshUsers();
+  };
+  const handleAdminUpdateUser = async (e) => {
+    e.preventDefault();
+    try {
+      const res = await apiRequest(`${API_URL}/staff/${editingUser.id}`, {
+        method: "PUT",
+        body: JSON.stringify(editingUser),
+      });
+  
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.detail || "Update failed");
+  
+      // Refresh the list and close the edit state
+      await refreshUsers();
+      setEditingUser(null);
+      alert("Staff details updated successfully!");
+    } catch (err) {
+      // This catches the detail string from backend instead of [object Object]
+      alert(err.message);
+    }
+  };
+  const handleAdminDeleteUser = async (id) => {
+    if (!confirm("Are you sure you want to delete this staff member?")) return;
+  
+    try {
+      const res = await apiRequest(`${API_URL}/staff/${id}`, {
+        method: "DELETE",
+      });
+  
+      const data = await res.json().catch(() => ({}));
+  
+      if (!res.ok) {
+        // ✅ Now alerts the actual error string
+        alert(data.detail || "Failed to delete staff member");
+        return;
+      }
+  
+      setUsersList((prev) => prev.filter((u) => u.id !== id));
+    } catch (err) {
+      console.error("Delete error:", err);
+    }
+  };
+
+  // --- DOCK LOGIC ---
+  const connectDock = async () => {
+    try {
+      if ("serial" in navigator) {
+        const port = await navigator.serial.requestPort();
+        await port.open({ baudRate: 9600 });
+
+        // STORE THE PORT HERE
+        portRef.current = port;
+
+        setDockConnected(true);
+        alert("✅ Dock Connected Successfully!");
+      } else {
+        alert("⚠️ Web Serial API not supported in this browser.");
+      }
+    } catch (err) {
+      console.error("Dock Connection Failed:", err);
+      setDockConnected(false);
+    }
+  };
+
+  const sendToDock = async (tokenNum) => {
+    // Check if port exists and is writable
+    if (!dockConnected || !portRef.current || !portRef.current.writable) {
+      alert("Dock not connected or not writable! Please connect dock.");
+      return;
+    }
+
+    // 1. Get the writer
+    const writer = portRef.current.writable.getWriter();
+
+    try {
+      // 2. Write the data
+
+      console.log(`Sending Token ${tokenNum} to Dock...`);
+
+      const data = new TextEncoder().encode(`${tokenNum}\n`);
+      await writer.write(data);
+    } catch (error) {
+      console.error("Error writing to serial port:", error);
+      alert("Failed to send to dock");
+    } finally {
+      // 3. CRITICAL: Release the lock so the port can be used again later
+      writer.releaseLock();
+    }
+  };
+
+  // Cart Logic
+  const cartSubtotal = cart.reduce((s, i) => s + i.price * i.quantity, 0);
+  const taxAmount = Math.max(0, cartSubtotal - discount) * (taxRate / 100);
+  const grandTotal = Math.round(
+    Math.max(0, cartSubtotal - discount) + taxAmount
+  );
+
+  // Find this line in RestaurantVendorUI.jsx (around line 325)
+const availableTokens = useMemo(() => {
+  const used = orders.map((o) => String(o.token));
+  // ✅ Change length from 6 to 8
+  return Array.from({ length: 8 }, (_, i) => String(i + 1)).filter(
+    (t) => !used.includes(t)
+  );
+}, [orders]);
+
+  // Only auto-switch if the CURRENT selected token is actually in use (invalid)
+  // or if no token is selected at all.
+  useEffect(() => {
+    if (availableTokens.length > 0) {
+      // If current selection is valid, DO NOTHING. Keep user selection.
+      if (availableTokens.includes(selectedToken)) return;
+
+      // If current selection is invalid (used), pick the first available one.
+      setSelectedToken(availableTokens[0]);
+    }
+  }, [availableTokens, selectedToken]); // Keep dependencies the same
+
+  const addToCart = (item) =>
+    setCart((p) => {
+      const f = p.find((i) => i.id === item.id);
+      return f
+        ? p.map((i) =>
+            i.id === item.id ? { ...i, quantity: i.quantity + 1 } : i
+          )
+        : [...p, { ...item, quantity: 1 }];
+    });
+  const removeFromCart = (item) =>
+    setCart((p) => {
+      const f = p.find((i) => i.id === item.id);
+      if (!f) return p;
+      if (f.quantity === 1) return p.filter((i) => i.id !== item.id);
+      return p.map((i) =>
+        i.id === item.id ? { ...i, quantity: i.quantity - 1 } : i
+      );
+    });
+
+  // --- 1. FIXED: Handle the Checkout Button Click ---
+  const handleCheckoutClick = () => {
+    // FORCE a log to see if the function even fires
+    if (orders.length >= settings.kitchenCapacity) {
+      const proceed = window.confirm(
+        `⚠️ WARNING: Kitchen is at capacity (${orders.length}/${settings.kitchenCapacity}).\n\nPlacing this order may cause significant delays. Continue?`
+      );
+      if (!proceed) return;
+    }
+    console.log("!!! handleCheckoutClick TRIGGERED !!!");
+    console.log("Current selectedToken:", selectedToken);
+    console.log("Dock Status:", dockConnected);
+    setActiveUpiData(null);
+    if (dockConnected && selectedToken) {
+      console.log(`Sending token ${selectedToken} to dock hardware...`);
+      sendToDock(selectedToken);
+    } else {
+      console.warn("Signal not sent: Dock not connected or Token missing.");
+    }
+
+    setShowCheckout(true);
+  };
+
+  // --- 2. FIXED: Handle the Database Save ---
+  const finalizeOrder = async (payData) => {
+    console.log("FINALIZE ORDER CALLED:", payData);
+    
+    if (payData?.paymentMethod === "upi" && !activeUpiData) {
+      const qrConfig = {
+        pa: settings.upiId,
+        pn: settings.payeeName,
+        cu: "INR",
+      };
+      const qrUrl = getUPIQR(qrConfig, grandTotal, selectedToken);
+      setActiveUpiData({ qr: qrUrl, payee: settings.payeeName });
+      return;
+    }
+
+    let method = typeof payData === "object" ? payData.paymentMethod : payData;
+    const tokenToSave = Number(selectedToken);
+    const localItems = cart.map(i => ({ name: i.name, quantity: i.quantity }));
+
+    const payload = {
+      total_amount: grandTotal,
+      payment_method: method,
+      token: tokenToSave,
+      items: cart.map((i) => ({
+        product_id: i.id,
+        quantity: i.quantity,
+        subtotal: i.price * i.quantity
+      })),
+    };
+  
+    try {
+      const res = await apiRequest(`${API_URL}/orders/`, {
+        method: "POST",
+        body: JSON.stringify(payload),
+      });
+  
+      const r = await res.json();
+      if (!res.ok) throw new Error(r.detail || "Order failed");
+  
+      if (method === "upi" && !payData.confirmed) {
+         const qrConfig = { pa: settings.upiId, pn: settings.payeeName, cu: "INR" };
+         const qrUrl = getUPIQR(qrConfig, grandTotal, tokenToSave, r.id);
+         setActiveUpiData({ qr: qrUrl });
+      } else {
+        // ✅ KITCHEN FIX: Use "active" status to match server-side polling filter
+        const newO = {
+          id: r.id,
+          token: tokenToSave,
+          items: localItems,
+          startedAt: new Date().toISOString(),
+          total: grandTotal,
+          status: "active", 
+        };
+  
+        setOrders((p) => [newO, ...p]);
+        
+        // ✅ STOCK FIX: Immediately trigger product refresh to update card counts
+        await refreshProducts();
+
+        setCart([]);
+        setDiscount(0);
+        setShowCheckout(false);
+        setActiveUpiData(null);
+      }
+    } catch (e) {
+      alert(e.message);
+      setShowCheckout(false);
+    }
+  };
+
+  const handleMarkReady = async (id) => {
+    if (!confirm("Complete Order?")) return;
+  
+    try {
+      const res = await apiRequest(`${API_URL}/orders/${id}/complete`, {
+        method: "PUT",
+      });
+  
+      const data = await res.json();
+  
+      if (!res.ok) throw new Error(data.detail || "Failed to complete order");
+  
+      setOrders((p) => p.filter((o) => String(o.id) !== String(id)));
+    } catch (e) {
+      console.error("Complete order error:", e);
+      alert(e.message);
+    }
+  };
+
+  const handlePaymentSuccess = async(method) => {
+    setCart([]);
+    setDiscount(0);
+    setActiveUpiData(null);
+    await finalizeOrder({ paymentMethod: method,confirmed: true });
+    setShowCheckout(false);
+    setTimeout(fetchActiveOrders, 500);
+  };
+
+  return (
+    <div
+      className={`flex flex-col h-screen overflow-hidden ${theme.bg.main} ${theme.text.main}`}
+      style={{ fontFamily: FONTS.sans }}
+    >
+      {/* Header */}
+      <header
+        className={`h-16 flex items-center justify-between px-6 border-b ${theme.border.default} ${theme.bg.card}`}
+      >
+        <div className="flex items-center gap-6">
+          <div className="flex items-center gap-3">
+            <div className={`p-2 rounded-xl ${theme.bg.subtle}`}>
+              <Settings size={20} />
+            </div>
+            <h1 className="text-lg font-semibold">POS</h1>
+          </div>
+          <nav className="flex items-center gap-1">
+            {[
+            {
+              id: "dashboard",
+              icon: LayoutDashboard,
+              label: "Dashboard",
+              roles: ["admin", "manager"],
+            },
+            {
+              id: "pos",
+              icon: Coffee,
+              label: "MENU",
+              roles: ["cashier"],
+            },
+            {
+              id: "products",
+              icon: Box,
+              label: "Products",
+              roles: ["admin", "manager"],
+            },
+            {
+              id: "kitchen",
+              icon: Bell,
+              label: "Kitchen",
+              roles: ["cashier", "manager"],
+              action: () => setShowActiveOrders(true),
+              badge: orders.length,
+              isCritical: orders.length >= settings.kitchenCapacity
+            },
+            {
+              id: "users",
+              icon: User,
+              label: "Staff",
+              roles: ["admin","manager"],
+            },
+            {
+              id: "inventory",
+              icon: Box,
+              label: "Inventory",
+              roles: ["admin", "manager"],
+            },
+            {
+              id: "recipes",
+              icon: BookOpen,
+              label: "Recipes",
+              roles: ["admin","manager"]
+            }
+          ].map(
+              (item) =>
+              (!item.roles || item.roles.includes(userRole)) && (
+                <button
+                key={item.id}
+                onClick={() => item.action ? item.action() : setActiveTab(item.id)}
+                className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors relative
+                ${activeTab === item.id && !item.action ? `${theme.bg.active} ${theme.text.main}` : theme.button.ghost}
+                ${item.id === 'kitchen' && orders.length >= settings.kitchenCapacity ? 'text-red-500 animate-pulse bg-red-500/10' : ''}`}
+              >
+                <item.icon size={16} className={item.id === 'kitchen' && orders.length >= settings.kitchenCapacity ? 'text-red-500' : ''} />
+                <span>{item.label}</span>
+                {/* Update badge styling */}
+                {item.badge > 0 && (
+                  <span className={`${orders.length >= settings.kitchenCapacity ? 'bg-red-600' : 'bg-blue-600'} text-white text-[10px] min-w-[18px] h-[18px] rounded-full flex items-center justify-center`}>
+                    {item.badge}
+                  </span>
+                )}
+              </button>
+                )
+            )}
+          </nav>
+        </div>
+        <div className="flex items-center gap-3">
+          {userRole !== "admin" && (
+            <button
+              onClick={connectDock}
+              className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-sm font-medium transition-all ${
+                dockConnected
+                  ? `${theme.bg.active} ${theme.border.default} ${theme.text.main}`
+                  : `${theme.border.default} ${theme.button.ghost}`
+              }`}
+            >
+              <Wifi
+                size={16}
+                className={dockConnected ? "animate-pulse" : ""}
+              />
+              <span className="hidden sm:inline">
+                {dockConnected ? "Dock" : "Connect"}
+              </span>
+            </button>
+          )}
+          <button
+            onClick={onToggleTheme}
+            className={`p-2 rounded-lg ${theme.button.ghost}`}
+          >
+            {isDarkMode ? <Sun size={18} /> : <Moon size={18} />}
+          </button>
+          {userRole === "admin" && (
+            <button
+              onClick={() => setSettingsOpen(true)}
+              className={`p-2 rounded-lg ${theme.button.ghost}`}
+            >
+              <Settings size={18} />
+            </button>
+          )}
+          <div className="flex items-center gap-3">
+            <div className="text-right hidden sm:block">
+              <p className="text-sm font-medium">{displayName}</p>
+              <p
+                className={`text-xs uppercase font-medium tracking-wider ${theme.text.tertiary}`}
+              >
+                {userRole}
+              </p>
+            </div>
+            <div
+              className={`h-8 w-8 rounded-full flex items-center justify-center border ${theme.border.default} ${theme.bg.subtle}`}
+            >
+              <User size={16} className={theme.text.secondary} />
+            </div>
+          </div>
+          <button
+            onClick={onLogout}
+            className={`p-2 rounded-lg ${theme.button.ghost}`}
+          >
+            <LogOut size={18} />
+          </button>
+        </div>
+      </header>
+
+      {/* Main Content */}
+      <main className={`flex-1 flex flex-col overflow-hidden ${theme.bg.main}`}>
+        <div className="flex-1 overflow-y-auto p-0 relative">
+        {activeTab === "dashboard" && ["admin","manager"].includes(userRole) && (
+  <div className="p-8">
+    <SalesReport
+      history={salesHistory}
+      reportDate={reportDate}
+      setReportDate={setReportDate}
+      fetchSalesHistory={fetchSalesHistory} // This triggers the API
+      isHistoryLoading={isHistoryLoading}
+      isDarkMode={isDarkMode}
+    />
+  </div>
+)}
+
+        {activeTab === "dashboard" && userRole === "manager" && (
+          <div className="p-8">
+            <ManagerDashboard
+              apiRequest={apiRequest}
+              isDarkMode={isDarkMode}
+            />
+          </div>
+        )}
+  
+  {activeTab === "pos" && userRole === "cashier" && (
+  <POSView
+    menu={menu}
+    categories={categories}
+    cart={cart}
+    selectedCategory={selectedCategory}
+    setSelectedCategory={setSelectedCategory}
+    availableTokens={availableTokens}
+    selectedToken={selectedToken}
+    onSetToken={setSelectedToken}
+    onAddToCart={addToCart}
+    onRemoveFromCart={removeFromCart}
+    onCheckout={handleCheckoutClick}
+    isDarkMode={isDarkMode}
+    discount={discount}
+    setDiscount={setDiscount}
+    taxRate={taxRate}
+  />
+)}
+{activeTab === "products" && ["admin","manager"].includes(userRole) && (
+  <ProductManagement
+    rawProducts={rawProducts}
+    categories={categories}
+    isDarkMode={isDarkMode}
+    onAdd={handleAdminAddProduct}
+    onUpdate={handleAdminUpdateProduct}
+    onDelete={(id) => {
+      if (confirm("Delete?"))
+        apiRequest(`${API_URL}/products/${id}`, {
+          method: "DELETE",
+        }).then(refreshProducts);
+    }}
+  />
+)}
+          {activeTab === "inventory" && ["admin","manager"].includes(userRole) && (
+  <InventoryManager
+    apiRequest={apiRequest}
+    isDarkMode={isDarkMode}
+  />
+)}
+{activeTab === "recipes" && ["admin","manager"].includes(userRole) && (
+  <RecipeManager
+    apiRequest={apiRequest}
+    isDarkMode={isDarkMode}
+    products={rawProducts}
+  />
+)}
+          {activeTab === "users" && ["admin","manager"].includes(userRole) && (
+            
+            <div className="max-w-4xl mx-auto p-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+              <h2 className="text-2xl font-semibold mb-8">Staff Management</h2>
+              <div
+                className={`p-6 rounded-lg border mb-8 ${COMMON_STYLES.card(
+                  isDarkMode
+                )}`}
+              >
+                <h3
+                  className={`text-sm font-semibold mb-4 flex items-center gap-2 ${theme.text.main}`}
+                >
+                  <Plus size={16} /> Add User
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+                  <div className="col-span-1">
+                    <label
+                      className={`text-xs font-medium uppercase mb-1.5 block ${theme.text.secondary}`}
+                    >
+                      Username
+                    </label>
+                    <input
+                      className={`w-full ${COMMON_STYLES.input(isDarkMode)}`}
+                      value={newUser.username}
+                      onChange={(e) =>
+                        setNewUser({ ...newUser, username: e.target.value })
+                      }
+                      placeholder="john_doe"
+                    />
+                  </div>
+                  <div className="col-span-1">
+                    <label
+                      className={`text-xs font-medium uppercase mb-1.5 block ${theme.text.secondary}`}
+                    >
+                      Email
+                    </label>
+                    <input
+                      className={`w-full ${COMMON_STYLES.input(isDarkMode)}`}
+                      value={newUser.email}
+                      onChange={(e) =>
+                        setNewUser({ ...newUser, email: e.target.value })
+                      }
+                      placeholder="email@pos.com"
+                    />
+                  </div>
+                  <div className="col-span-1">
+                    <label
+                      className={`text-xs font-medium uppercase mb-1.5 block ${theme.text.secondary}`}
+                    >
+                      Password
+                    </label>
+                    <input
+                      className={`w-full ${COMMON_STYLES.input(isDarkMode)}`}
+                      type="password"
+                      value={newUser.password}
+                      onChange={(e) =>
+                        setNewUser({ ...newUser, password: e.target.value })
+                      }
+                      placeholder="••••"
+                    />
+                  </div>
+                  <div className="col-span-1 flex gap-2">
+                    <div className="flex-1">
+                      <label
+                        className={`text-xs font-medium uppercase mb-1.5 block ${theme.text.secondary}`}
+                      >
+                        Role
+                      </label>
+                      <select
+                        className={`w-full ${COMMON_STYLES.select(isDarkMode)}`}
+                        value={newUser.role}
+                        onChange={(e) =>
+                          setNewUser({ ...newUser, role: e.target.value })
+                        }
+                      >
+                        <option value="cashier">Cashier</option>
+                        <option value="manager">Manager</option>
+                        <option value="admin">Admin</option>
+                      </select>
+                    </div>
+                    <button
+                      onClick={handleAdminAddUser}
+                      className={`px-4 py-2 rounded-md text-sm font-medium transition-colors outline-none mt-auto ${theme.button.primary}`}
+                    >
+                      Create
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {usersList.map((u) => (
+        <div
+          key={u.id}
+          className={`p-5 rounded-lg border flex justify-between items-center group transition-colors ${COMMON_STYLES.card(isDarkMode)}`}
+        >
+          <div className="flex items-center gap-4">
+            <div className={`p-3 rounded-md ${theme.bg.subtle}`}>
+              <User size={20} />
+            </div>
+            <div>
+              <p className="font-medium text-sm">{u.username}</p>
+              <p className={`text-xs font-medium ${theme.text.tertiary}`}>{u.role}</p>
+              <p className={`text-xs ${theme.text.muted}`}>{u.email}</p>
+            </div>
+          </div>
+          
+          <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-all">
+            <button
+              onClick={() => setEditingUser(u)}
+              className={`p-2 rounded-md hover:bg-blue-500/10 text-blue-500 transition-colors`}
+            >
+              <Settings size={18} />
+            </button>
+
+            <button
+              onClick={() => handleAdminDeleteUser(u.id)}
+              className={`p-2 rounded-md hover:bg-red-500/10 text-red-500 transition-colors`}
+            >
+              <Trash2 size={16} />
+            </button>
+          </div>
+        </div>
+      ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </main>
+
+      <CheckoutModal
+        isOpen={showCheckout}
+        onClose={() => setShowCheckout(false)}
+        onConfirm={finalizeOrder}
+        cartSubtotal={cartSubtotal}
+        taxAmount={taxAmount}
+        discount={discount}
+        grandTotal={grandTotal}
+        orderId={orders.length + 1}
+        isDarkMode={isDarkMode}
+        upiId={settings.upiId}
+        payeeName={settings.payeeName}
+        backendUpiData={activeUpiData}
+        onPaymentComplete={handlePaymentSuccess}
+      />
+      <ActiveOrdersDrawer
+        isOpen={showActiveOrders}
+        onClose={() => setShowActiveOrders(false)}
+        orders={orders}
+        onCompleteOrder={handleMarkReady}
+        onCallCustomer={(t) => sendToDock(t)}
+        isDarkMode={isDarkMode}
+      />
+      {userRole === "admin" && (
+        <AdminSettingsModal
+          open={settingsOpen}
+          onClose={() => setSettingsOpen(false)}
+          restaurantId={getRestaurantId()}
+        />
+      )}
+      {/* ✅ INSERT THE EDIT MODAL CODE HERE */}
+      {editingUser && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+           {/* ... modal content ... */}
+        </div>
+      )}
+    </div>
+  );
+}
+
+
+================================================================================
+FILE: components\ui\SalesReport.jsx
+================================================================================
+
+import React, { useMemo } from 'react';
+import { Calendar, Clock, Info, Inbox, Loader2 } from 'lucide-react';
+import { getTheme, COMMON_STYLES, FONTS } from './theme';
+
+export default function SalesReport({
+  history = [],
+  reportDate,
+  setReportDate,
+  isDarkMode,
+  isHistoryLoading, // Passed from parent
+}) {
+  const theme = getTheme(isDarkMode);
+
+  // ✅ Process chart data using safe string splitting
+  const chartData = useMemo(() => {
+    const hours = Array(24).fill(0);
+    const ordersArray = Array.isArray(history) ? history.filter(o => {
+        // Match only the date portion (YYYY-MM-DD)
+        return o.created_at.split('T')[0] === reportDate;
+    }) : [];
+
+    ordersArray.forEach(o => {
+      let dateStr = o.created_at;
+      if (!dateStr.includes('Z') && !dateStr.includes('+')) dateStr += 'Z';
+      const dateObj = new Date(dateStr);
+      if (!isNaN(dateObj.getTime())) {
+        const h = dateObj.getHours();
+        hours[h] += parseFloat(o.total_amount || 0);
+      }
+    });
+    return hours;
+  }, [history, reportDate]);
+
+  const hasOrders = useMemo(() => chartData.some(val => val > 0), [chartData]);
+  const maxSales = useMemo(() => {
+    const high = Math.max(...chartData);
+    return high > 0 ? high : 100;
+  }, [chartData]);
+
+  return (
+    <div className="flex flex-col h-full antialiased" style={{ fontFamily: FONTS.sans }}>
+      
+      {/* HEADER */}
+      <div className="flex justify-between items-center mb-6">
+        <div>
+          <h1 className="text-2xl font-bold">Dashboard</h1>
+          <p className="text-sm opacity-50">Activity Overview</p>
+        </div>
+        <div className="flex gap-3">
+          <div className="relative h-10 w-48 group"> 
+            <div className={`absolute inset-0 flex items-center gap-3 px-4 py-2 rounded-lg border ${COMMON_STYLES.card(isDarkMode)} border-zinc-800 group-hover:border-blue-500/50 transition-colors pointer-events-none z-10`}>
+              <Calendar size={18} className="text-blue-400" />
+              <span className="text-sm font-mono font-bold">{reportDate}</span>
+            </div>
+            <input
+              type="date"
+              value={reportDate}
+              onChange={(e) => setReportDate(e.target.value)}
+              onClick={(e) => e.target.showPicker?.()} 
+              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20"
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* GRAPH CONTAINER */}
+      <div className={`rounded-2xl border p-8 ${COMMON_STYLES.card(isDarkMode)} border-zinc-800 shadow-2xl min-h-[400px] flex flex-col relative overflow-hidden`}>
+        
+        {/* ✅ LOADING OVERLAY (Fixed: No more infinite spinner) */}
+        {isHistoryLoading && (
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm z-50 flex flex-col items-center justify-center animate-in fade-in duration-300">
+            <Loader2 className="w-10 h-10 text-blue-500 animate-spin mb-4" />
+            <p className="text-sm font-medium text-blue-400">Synchronizing data...</p>
+          </div>
+        )}
+
+        <div className="flex justify-between items-center mb-10">
+          <h2 className="font-semibold flex items-center gap-2">
+            <Clock size={18} className="text-blue-500" /> Hourly Sales ({reportDate})
+          </h2>
+        </div>
+        
+        {!hasOrders && !isHistoryLoading ? (
+          <div className="flex-1 flex flex-col items-center justify-center opacity-30 space-y-4">
+            <Inbox size={64} strokeWidth={1} />
+            <p className="text-xl font-semibold">No orders placed</p>
+          </div>
+        ) : (
+          <div className="h-56 flex gap-2 items-end px-2 border-b border-zinc-800/50 pb-2">
+            {chartData.map((val, h) => {
+              const heightPercentage = (val / maxSales) * 100;
+              return (
+                <div key={h} className="flex-1 flex flex-col items-center group relative h-full justify-end">
+                  {val > 0 && (
+                    <div className="absolute -top-12 bg-zinc-900 text-white text-[10px] px-3 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-all z-40 border border-zinc-700 shadow-2xl">
+                      <div className="font-bold text-blue-400">₹{val}</div>
+                      <div className="text-[8px] opacity-50">{h}:00</div>
+                    </div>
+                  )}
+                  <div
+                    className={`w-full rounded-t-sm transition-all duration-700 ease-out ${
+                      val > 0 ? 'bg-blue-500 border-t border-blue-300 shadow-[0_0_15px_rgba(59,130,246,0.5)]' : 'bg-zinc-800/10'
+                    }`}
+                    style={{ height: val > 0 ? `${Math.max(heightPercentage, 10)}%` : '2px' }}
+                  />
+                  <span className={`text-[9px] mt-3 font-mono ${val > 0 ? 'text-blue-400 font-bold' : 'opacity-20'}`}>
+                    {h.toString().padStart(2, '0')}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        <div className="mt-auto pt-6 flex items-center gap-2 text-[11px] opacity-40 italic">
+          <Info size={12} /> Data reflects local browser time (IST).
+        </div>
+      </div>
+    </div>
+  );
+}
+
+================================================================================
+FILE: components\ui\select.jsx
+================================================================================
+
+import * as React from "react"
+import * as SelectPrimitive from "@radix-ui/react-select"
+import { Check, ChevronDown, ChevronUp } from "lucide-react"
+
+import { cn } from "@/lib/utils"
+
+const Select = SelectPrimitive.Root
+
+const SelectGroup = SelectPrimitive.Group
+
+const SelectValue = SelectPrimitive.Value
+
+const SelectTrigger = React.forwardRef(({ className, children, ...props }, ref) => (
+  <SelectPrimitive.Trigger
+    ref={ref}
+    className={cn(
+      "flex h-9 w-full items-center justify-between whitespace-nowrap rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm ring-offset-background data-[placeholder]:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1",
+      className
+    )}
+    {...props}>
+    {children}
+    <SelectPrimitive.Icon asChild>
+      <ChevronDown className="h-4 w-4 opacity-50" />
+    </SelectPrimitive.Icon>
+  </SelectPrimitive.Trigger>
+))
+SelectTrigger.displayName = SelectPrimitive.Trigger.displayName
+
+const SelectScrollUpButton = React.forwardRef(({ className, ...props }, ref) => (
+  <SelectPrimitive.ScrollUpButton
+    ref={ref}
+    className={cn("flex cursor-default items-center justify-center py-1", className)}
+    {...props}>
+    <ChevronUp className="h-4 w-4" />
+  </SelectPrimitive.ScrollUpButton>
+))
+SelectScrollUpButton.displayName = SelectPrimitive.ScrollUpButton.displayName
+
+const SelectScrollDownButton = React.forwardRef(({ className, ...props }, ref) => (
+  <SelectPrimitive.ScrollDownButton
+    ref={ref}
+    className={cn("flex cursor-default items-center justify-center py-1", className)}
+    {...props}>
+    <ChevronDown className="h-4 w-4" />
+  </SelectPrimitive.ScrollDownButton>
+))
+SelectScrollDownButton.displayName =
+  SelectPrimitive.ScrollDownButton.displayName
+
+const SelectContent = React.forwardRef(({ className, children, position = "popper", ...props }, ref) => (
+  <SelectPrimitive.Portal>
+    <SelectPrimitive.Content
+      ref={ref}
+      className={cn(
+        "relative z-50 max-h-[--radix-select-content-available-height] min-w-[8rem] overflow-y-auto overflow-x-hidden rounded-md border bg-popover text-popover-foreground shadow-md data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 origin-[--radix-select-content-transform-origin]",
+        position === "popper" &&
+          "data-[side=bottom]:translate-y-1 data-[side=left]:-translate-x-1 data-[side=right]:translate-x-1 data-[side=top]:-translate-y-1",
+        className
+      )}
+      position={position}
+      {...props}>
+      <SelectScrollUpButton />
+      <SelectPrimitive.Viewport
+        className={cn("p-1", position === "popper" &&
+          "h-[var(--radix-select-trigger-height)] w-full min-w-[var(--radix-select-trigger-width)]")}>
+        {children}
+      </SelectPrimitive.Viewport>
+      <SelectScrollDownButton />
+    </SelectPrimitive.Content>
+  </SelectPrimitive.Portal>
+))
+SelectContent.displayName = SelectPrimitive.Content.displayName
+
+const SelectLabel = React.forwardRef(({ className, ...props }, ref) => (
+  <SelectPrimitive.Label
+    ref={ref}
+    className={cn("px-2 py-1.5 text-sm font-semibold", className)}
+    {...props} />
+))
+SelectLabel.displayName = SelectPrimitive.Label.displayName
+
+const SelectItem = React.forwardRef(({ className, children, ...props }, ref) => (
+  <SelectPrimitive.Item
+    ref={ref}
+    className={cn(
+      "relative flex w-full cursor-default select-none items-center rounded-sm py-1.5 pl-2 pr-8 text-sm outline-none focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+      className
+    )}
+    {...props}>
+    <span className="absolute right-2 flex h-3.5 w-3.5 items-center justify-center">
+      <SelectPrimitive.ItemIndicator>
+        <Check className="h-4 w-4" />
+      </SelectPrimitive.ItemIndicator>
+    </span>
+    <SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>
+  </SelectPrimitive.Item>
+))
+SelectItem.displayName = SelectPrimitive.Item.displayName
+
+const SelectSeparator = React.forwardRef(({ className, ...props }, ref) => (
+  <SelectPrimitive.Separator
+    ref={ref}
+    className={cn("-mx-1 my-1 h-px bg-muted", className)}
+    {...props} />
+))
+SelectSeparator.displayName = SelectPrimitive.Separator.displayName
+
+export {
+  Select,
+  SelectGroup,
+  SelectValue,
+  SelectTrigger,
+  SelectContent,
+  SelectLabel,
+  SelectItem,
+  SelectSeparator,
+  SelectScrollUpButton,
+  SelectScrollDownButton,
+}
+
+
+================================================================================
+FILE: components\ui\separator.jsx
+================================================================================
+
+"use client"
+
+import * as React from "react"
+import * as SeparatorPrimitive from "@radix-ui/react-separator"
+
+import { cn } from "@/lib/utils"
+
+const Separator = React.forwardRef((
+  { className, orientation = "horizontal", decorative = true, ...props },
+  ref
+) => (
+  <SeparatorPrimitive.Root
+    ref={ref}
+    decorative={decorative}
+    orientation={orientation}
+    className={cn(
+      "shrink-0 bg-border",
+      orientation === "horizontal" ? "h-[1px] w-full" : "h-full w-[1px]",
+      className
+    )}
+    {...props} />
+))
+Separator.displayName = SeparatorPrimitive.Root.displayName
+
+export { Separator }
+
+
+================================================================================
+FILE: components\ui\theme.js
+================================================================================
+
+/**
+ * Vercel-inspired Theme Configuration
+ * Monochromatic design system with Geist font family
+ */
+
+export const FONTS = {
+  sans: '-apple-system, "Segoe UI", "Geist Sans", sans-serif',
+  mono: '"Geist Mono", "SF Mono", Monaco, "Cascadia Code", "Roboto Mono", Consolas, "Courier New", monospace'
+};
+
+export const getTheme = (isDarkMode) => ({
+  // Background colors
+  bg: {
+    main: isDarkMode ? 'bg-black' : 'bg-white',
+    card: isDarkMode ? 'bg-black' : 'bg-white',
+    hover: isDarkMode ? 'hover:bg-neutral-900' : 'hover:bg-neutral-50',
+    active: isDarkMode ? 'bg-neutral-900' : 'bg-neutral-100',
+    overlay: 'bg-black/60 backdrop-blur-sm',
+    input: isDarkMode ? 'bg-black' : 'bg-white',
+    subtle: isDarkMode ? 'bg-neutral-900' : 'bg-neutral-50',
+  },
+
+  // Border colors
+  border: {
+    default: isDarkMode ? 'border-neutral-800' : 'border-neutral-200',
+    hover: isDarkMode ? 'hover:border-neutral-700' : 'hover:border-neutral-300',
+    focus: 'focus:border-neutral-400',
+    light: isDarkMode ? 'border-neutral-900' : 'border-neutral-100',
+  },
+
+  // Text colors
+  text: {
+    main: isDarkMode ? 'text-white' : 'text-black',
+    secondary: isDarkMode ? 'text-neutral-400' : 'text-neutral-600',
+    tertiary: isDarkMode ? 'text-neutral-500' : 'text-neutral-500',
+    muted: isDarkMode ? 'text-neutral-600' : 'text-neutral-400',
+    placeholder: isDarkMode ? 'placeholder:text-neutral-600' : 'placeholder:text-neutral-400',
+  },
+
+  // Button variants
+  button: {
+    primary: isDarkMode 
+      ? 'bg-white text-black hover:bg-neutral-200' 
+      : 'bg-black text-white hover:bg-neutral-800',
+    secondary: isDarkMode 
+      ? 'bg-neutral-900 text-white hover:bg-neutral-800' 
+      : 'bg-neutral-100 text-black hover:bg-neutral-200',
+    ghost: isDarkMode
+      ? 'text-neutral-400 hover:bg-neutral-900 hover:text-white'
+      : 'text-neutral-600 hover:bg-neutral-50 hover:text-black',
+  },
+
+  // Ring colors for focus states
+  ring: 'focus:ring-1 focus:ring-neutral-400',
+});
+
+// Common CSS classes
+export const COMMON_STYLES = {
+  // Input fields
+  input: (isDarkMode) => `
+    border px-3 py-2 rounded-md text-sm outline-none
+    focus:border-neutral-400 transition-colors
+    ${isDarkMode 
+      ? 'bg-black border-neutral-800 text-white placeholder:text-neutral-600' 
+      : 'bg-white border-neutral-200 text-black placeholder:text-neutral-400'
+    }
+  `,
+
+  // Select dropdowns
+  select: (isDarkMode) => `
+    border px-3 py-2 rounded-md text-sm outline-none
+    appearance-none focus:border-neutral-400 cursor-pointer transition-colors
+    ${isDarkMode 
+      ? 'bg-black border-neutral-800 text-white' 
+      : 'bg-white border-neutral-200 text-black'
+    }
+  `,
+
+  // Card containers
+  card: (isDarkMode) => `
+    rounded-lg border
+    ${isDarkMode 
+      ? 'bg-black border-neutral-800' 
+      : 'bg-white border-neutral-200'
+    }
+  `,
+
+  // Modal/Overlay containers
+  modal: (isDarkMode) => `
+    rounded-2xl border shadow-2xl
+    ${isDarkMode 
+      ? 'bg-black border-neutral-800' 
+      : 'bg-white border-neutral-200'
+    }
+  `,
+
+  // Table rows
+  tableRow: (isDarkMode) => `
+    border-b text-sm transition-colors
+    ${isDarkMode 
+      ? 'border-neutral-800 hover:bg-neutral-900' 
+      : 'border-neutral-100 hover:bg-neutral-50'
+    }
+  `,
+
+  // Table headers
+  tableHeader: (isDarkMode) => `
+    border-b text-sm
+    ${isDarkMode 
+      ? 'border-neutral-800 text-neutral-400' 
+      : 'border-neutral-200 text-neutral-600'
+    }
+  `,
+
+  // Badge/Tag
+  badge: (isDarkMode) => `
+    px-2 py-1 rounded text-xs font-medium
+    ${isDarkMode 
+      ? 'bg-neutral-900 text-neutral-400 border border-neutral-800' 
+      : 'bg-neutral-100 text-neutral-600'
+    }
+  `,
+
+  // Icon colors
+  icon: (isDarkMode) => isDarkMode ? 'text-neutral-600' : 'text-neutral-400',
+};
+
+// Animation classes
+export const ANIMATIONS = {
+  fadeIn: 'animate-in fade-in duration-200',
+  slideInFromLeft: 'animate-in slide-in-from-left duration-300',
+  slideInFromRight: 'animate-in slide-in-from-right duration-300',
+  slideInFromTop: 'animate-in slide-in-from-top-2 duration-300',
+  zoomIn: 'animate-in zoom-in-95 duration-200',
+  scaleDown: 'active:scale-[0.98]',
+};
+
+// Transition classes
+export const TRANSITIONS = {
+  colors: 'transition-colors',
+  all: 'transition-all',
+  transform: 'transition-transform',
+};
+
+// Shadow styles (minimal, Vercel-style)
+export const SHADOWS = {
+  sm: 'shadow-sm',
+  md: 'shadow-md',
+  lg: 'shadow-lg',
+  xl: 'shadow-xl',
+  '2xl': 'shadow-2xl',
+};
+
+================================================================================
+FILE: components\ui\UserManagementModal.jsx
+================================================================================
+
+import React from 'react';
+import { X, User } from 'lucide-react';
+
+export default function UserManagementModal({ isOpen, onClose, currentUser }) {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-[80] flex items-center justify-center animate-in fade-in duration-200">
+      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
+      <div className="relative w-full max-w-sm bg-white dark:bg-slate-900 dark:text-white rounded-xl shadow-2xl p-6">
+        
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="font-bold text-lg">User Profile</h2>
+          <button onClick={onClose}><X size={20}/></button>
+        </div>
+
+        <div className="text-center opacity-60 mb-6">
+           <User size={48} className="mx-auto mb-4"/>
+           <p className="text-sm">Logged in as:</p>
+           <p className="font-bold text-lg">{currentUser?.email || 'User'}</p>
+           <p className="text-xs uppercase mt-1 bg-gray-100 dark:bg-slate-800 px-2 py-1 rounded inline-block">
+             {currentUser?.role || 'Vendor'}
+           </p>
+        </div>
+
+        <button onClick={onClose} className="w-full py-2 bg-gray-200 dark:bg-slate-800 rounded font-bold hover:opacity-80">
+            Close
+        </button>
+      </div>
+    </div>
+  );
+}
+
+================================================================================
+FILE: components\ui\utils.js
+================================================================================
+
+export const getLocalDate = () => {
+  return new Date().toLocaleDateString('en-CA');
+};
+
+export const getUPIQR = (config, total, token, orderId) => {
+  const tempTr = `ORD-${orderId}-${Date.now()}`; 
+  const tempTn = `Order #${orderId}`;
+  const upiString = `upi://pay?pa=${config.pa}&pn=${encodeURIComponent(config.pn)}&am=${total}&cu=${config.cu}&tn=${encodeURIComponent(tempTn)}&tr=${tempTr}`;
+  return `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(upiString)}`;
+};
+
+================================================================================
+FILE: lib\utils.js
+================================================================================
+
+import { clsx } from "clsx";
+import { twMerge } from "tailwind-merge"
+
+export function cn(...inputs) {
+  return twMerge(clsx(inputs));
+}
+
+
+================================================================================
+FILE: pages\Auth.jsx
+================================================================================
+
+import React, { useState } from "react";
+import { ChefHat } from "lucide-react";
+
+export default function Auth({ onLogin, onSignup, users, theme }) {
+  const [isLogin, setIsLogin] = useState(true);
+  const [form, setForm] = useState({
+    name: "",
+    email: "", // We will use email as username for login check
+    password: "",
+    role: "cashier",
+  });
+
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  function handleChange(e) {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  }
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+
+    // --- SIMULATED BACKEND LOGIC ---
+    // (Replace this setTimeout with your fetch() calls when your backend is ready)
+    setTimeout(() => {
+        try {
+            if (isLogin) {
+                // LOGIN LOGIC
+                // Check if user exists in the 'users' prop passed from Parent
+                const foundUser = users.find(u => 
+                    (u.username.toLowerCase() === form.email.toLowerCase() || u.email?.toLowerCase() === form.email.toLowerCase()) && 
+                    u.password === form.password
+                );
+
+                if (foundUser) {
+                    onLogin(foundUser);
+                } else {
+                    throw new Error("Invalid credentials. Try admin / 1234");
+                }
+            } else {
+                // SIGNUP LOGIC
+                if (!form.name || !form.email || !form.password) throw new Error("All fields required");
+                
+                // Create new user object
+                const newUser = {
+                    id: Date.now(),
+                    name: form.name,
+                    username: form.email.split('@')[0], // Generate username from email
+                    email: form.email,
+                    password: form.password,
+                    role: form.role
+                };
+                
+                onSignup(newUser);
+                alert("Account created! Logging you in...");
+                onLogin(newUser);
+            }
+        } catch (err) {
+            setError(err.message);
+        } finally {
+            setLoading(false);
+        }
+    }, 800);
+  }
+
+  return (
+    <div className={`min-h-screen flex items-center justify-center ${theme.bgMain}`}>
+      <div className={`${theme.bgCard} p-8 rounded-2xl shadow-2xl w-[380px] border ${theme.border} animate-in fade-in zoom-in`}>
+        
+        <div className="text-center mb-6">
+            <div className={`mx-auto w-16 h-16 ${theme.accent} rounded-2xl flex items-center justify-center shadow-lg mb-4 rotate-12`}>
+                <ChefHat size={32} className="text-white" />
+            </div>
+            <h2 className="text-2xl font-bold text-center">
+            {isLogin ? "Welcome Back" : "Create Account"}
+            </h2>
+            <p className={`text-xs ${theme.textSec}`}>POS Management System</p>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {!isLogin && (
+            <input
+              name="name"
+              placeholder="Full Name"
+              value={form.name}
+              onChange={handleChange}
+              required
+              className={`w-full border ${theme.border} ${theme.inputBg} p-3 rounded-lg outline-none focus:ring-2 focus:ring-blue-500`}
+            />
+          )}
+
+          <input
+            name="email"
+            type="text" // Changed to text to allow simple usernames like 'admin'
+            placeholder="Email or Username"
+            value={form.email}
+            onChange={handleChange}
+            required
+            className={`w-full border ${theme.border} ${theme.inputBg} p-3 rounded-lg outline-none focus:ring-2 focus:ring-blue-500`}
+          />
+
+          <input
+            name="password"
+            type="password"
+            placeholder="Password"
+            value={form.password}
+            onChange={handleChange}
+            required
+            className={`w-full border ${theme.border} ${theme.inputBg} p-3 rounded-lg outline-none focus:ring-2 focus:ring-blue-500`}
+          />
+
+          {!isLogin && (
+            <select
+              name="role"
+              value={form.role}
+              onChange={handleChange}
+              className={`w-full border ${theme.border} ${theme.inputBg} p-3 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer`}
+            >
+              <option value="employee">Cashier / Staff</option>
+              <option value="admin">Admin</option>
+            </select>
+          )}
+
+          {error && <p className="text-red-500 text-sm font-bold bg-red-100 p-2 rounded text-center">{error}</p>}
+
+          <button disabled={loading} className={`w-full ${theme.accent} text-white py-3 rounded-xl font-bold hover:opacity-90 transition-all active:scale-95`}>
+            {loading ? "Processing..." : (isLogin ? "Login" : "Sign Up")}
+          </button>
+        </form>
+
+        <p className={`text-sm text-center mt-6 ${theme.textSec}`}>
+          {isLogin ? "Don't have an account?" : "Already have an account?"}{" "}
+          <button
+            type="button"
+            onClick={() => { setIsLogin(!isLogin); setError(""); }}
+            className="text-blue-600 font-bold hover:underline"
+          >
+            {isLogin ? "Sign up" : "Login"}
+          </button>
+        </p>
+      </div>
+    </div>
+  );
+}

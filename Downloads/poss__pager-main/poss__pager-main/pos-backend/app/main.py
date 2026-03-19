@@ -1,0 +1,50 @@
+import uvicorn
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from app.routers import auth, products, orders, settings_router
+from app.core.config import settings
+from app.routers import staff
+from app.routers import ingredients
+from app.routers import recipes
+from app.routers import dashboard
+from app.db.base import Base
+from app.db.session import engine
+app = FastAPI(title="POS Backend - FastAPI")
+origins = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    "http://192.168.1.123:5173",   # ✅ IMPORTANT
+    "https://posspager.vercel.app"
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,   # ✅ use variable (NOT string)
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+# Register Routers
+app.include_router(auth.router, prefix="/auth")
+app.include_router(products.router, prefix="/products")
+app.include_router(orders.router, prefix="/orders")
+app.include_router(settings_router.router, prefix="/settings")
+app.include_router(staff.router)
+app.include_router(ingredients.router)
+app.include_router(recipes.router)
+app.include_router(dashboard.router)
+@app.on_event("startup")
+async def create_tables():
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+
+@app.get("/")
+async def root():
+    return {"message": "POS Backend Online"}
+@app.get("/")
+async def root():
+    # Preserving exact health check response
+    return {"message": "POS Backend Online"}
+
+if __name__ == "__main__":
+    uvicorn.run("app.main:app", host="0.0.0.0", port=settings.PORT, reload=True)

@@ -1,0 +1,40 @@
+TABLE_NAME	COLUMN_NAME	DATA_TYPE	COLUMN_TYPE	IS_NULLABLE	COLUMN_KEY	EXTRA	COLUMN_DEFAULT
+order_items	id	int	int	NO	PRI	auto_increment	NULL
+order_items	order_id	int	int	NO	MUL		NULL
+order_items	product_id	int	int	NO	MUL		NULL
+order_items	name	varchar	varchar(255)	NO			NULL
+order_items	price	decimal	decimal(10,2)	NO			NULL
+order_items	quantity	int	int	NO			NULL
+orders	id	int	int	NO	PRI	auto_increment	NULL
+orders	restaurant_id	int	int	NO	MUL		NULL
+orders	total	decimal	decimal(10,2)	NO			NULL
+orders	payment_method	enum	enum('cash','upi','card')	NO			NULL
+orders	payment_status	enum	enum('pending','paid')	YES			pending
+orders	token	int	int	YES			NULL
+orders	created_at	timestamp	timestamp	YES		DEFAULT_GENERATED	CURRENT_TIMESTAMP
+products	id	int	int	NO	PRI	auto_increment	NULL
+products	restaurant_id	int	int	NO	MUL		NULL
+products	name	varchar	varchar(255)	NO			NULL
+products	price	decimal	decimal(10,2)	NO			NULL
+products	stock	int	int	YES			0
+products	category	varchar	varchar(100)	YES			NULL
+products	created_at	timestamp	timestamp	YES		DEFAULT_GENERATED	CURRENT_TIMESTAMP
+restaurants	id	int	int	NO	PRI	auto_increment	NULL
+restaurants	name	varchar	varchar(255)	NO			NULL
+restaurants	phone	varchar	varchar(50)	YES			NULL
+restaurants	email	varchar	varchar(255)	YES			NULL
+restaurants	created_at	timestamp	timestamp	YES		DEFAULT_GENERATED	CURRENT_TIMESTAMP
+restaurants	updated_at	timestamp	timestamp	YES		DEFAULT_GENERATED on update CURRENT_TIMESTAMP	CURRENT_TIMESTAMP
+store_settings	id	int	int	NO	PRI	auto_increment	NULL
+store_settings	restaurant_id	int	int	NO	UNI		NULL
+store_settings	upi_id	varchar	varchar(255)	YES			NULL
+store_settings	payee_name	varchar	varchar(255)	YES			NULL
+store_settings	created_at	timestamp	timestamp	YES		DEFAULT_GENERATED	CURRENT_TIMESTAMP
+store_settings	updated_at	timestamp	timestamp	YES		DEFAULT_GENERATED on update CURRENT_TIMESTAMP	CURRENT_TIMESTAMP
+users	id	int	int	NO	PRI	auto_increment	NULL
+users	restaurant_id	int	int	NO	MUL		NULL
+users	username	varchar	varchar(255)	NO			NULL
+users	email	varchar	varchar(255)	NO	UNI		NULL
+users	password	varchar	varchar(255)	NO			NULL
+users	role	enum	enum('admin','manager','cashier','kitchen')	NO			NULL
+users	created_at	timestamp	timestamp	YES		DEFAULT_GENERATED	CURRENT_TIMESTAMP
